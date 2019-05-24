@@ -5,12 +5,13 @@ int main()
 {
 	int n = 0;		//Cube size
 	int seed = 0;	//Random seed
+	int tmp = 0;
 
 	printf("Starting a new cube\n");
 	printf("Cube Size: ");
-	scanf("%i", &n);
+	tmp = scanf("%i", &n);
 	printf("Choose a random seed: ");
-	scanf("%i", &seed);
+	tmp = scanf("%i", &seed);
 	printf("Generating Cube...\n");
 
 	Cube cube(n);
@@ -26,8 +27,8 @@ int main()
 
 	printf("solving\n");
 
-	_mkdir("stats");
-	_mkdir("state");
+	tmp = mkdir("stats");
+	tmp = mkdir("state");
 
 	cube.Solve();
 

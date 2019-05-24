@@ -12,7 +12,7 @@ class Face
 	uint R1;				// RowSize - 1
 	uint MemRowSize;		// Memory row length (must be a power of 2) 32,64,128...65536
 	uint BS;				// bit shift = log2(memsize)
-	uint64 DataSize;			// size of data array in bytes = MemRowSize * MemRowSize
+	uint64 DataSize;		// size of data array in bytes = MemRowSize * MemRowSize
 	byte *data;				// face data
 	int orientation;		// Virtual orientation of this face [0,1,2,3] - 90 degree clockwise rotations
 	uint PieceCount[6];		// Keep track of the number of each piece on this face (used for validating the integrity of the cube)
@@ -33,8 +33,6 @@ public:
 	inline const byte GetCoordC(const uint r, const uint c, int q) const;
 
 	inline void SetRC(const uint r, const uint c, const byte v);
-
-	inline void SetRCQ(const int r, const int c, const byte v, int q);
 
 	void Initialize(byte index, uint rsize, uint msize);
 
@@ -156,25 +154,5 @@ inline void Face::SetRC(const uint r, const uint c, const byte v)
 	}
 }
 
-//Sets the value of this face at coordinates r = row, c = column + an additional rotation q (q=90 cw turn)
-inline void Face::SetRCQ(const int r, const int c, const byte v, int q)
-{
-	q = (orientation - q) & 3;
 
-	switch (q)
-	{
-	case 0:
-		data[(r << BS) + c] = v;
-		return;
-	case 1:
-		data[(c << BS) + (R1 - r)] = v;
-		return;
-	case 2:
-		data[(((R1 - r) << BS) + (R1 - c))] = v;
-		return;
-	case 3:
-		data[((R1 - c) << BS) + r] = v;
-		return;
-	}
-}
 

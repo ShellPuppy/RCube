@@ -33,7 +33,7 @@ void Face::Initialize(byte index, uint rsize, uint msize)
 	RowSize = rsize;
 	R1 = RowSize - 1;
 
-	//Compute the bit shift size for the length of a row
+	//Compute the bit-shift size for the length of a row
 	BS = (int)log2(MemRowSize);
 
 	//Compute the actual size of the array in bytes
@@ -50,7 +50,7 @@ void Face::Initialize(byte index, uint rsize, uint msize)
 
 	//Set all values on this face to match the faceindex
 	Paint(index);
-	//printf("Done Initializing Face\n");
+
 }
 
 //Verify the number of pieces on this face match what was saved and loaded from file

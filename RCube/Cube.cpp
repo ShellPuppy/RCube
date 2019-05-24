@@ -358,8 +358,8 @@ void Cube::PushCenterPieces(byte src, byte dst, byte color)
 
 	uint *mstack = new uint[Mid];		//Temporary array to keep track of rows that were used
 
-	int stkptr = 0;
-	int pieces = 0;
+	uint stkptr = 0;
+	uint pieces = 0;
 	uint start = Mid;
 
 	//If starting from a save state then set the start point
@@ -433,7 +433,7 @@ void Cube::PushCenterPieces(byte src, byte dst, byte color)
 
 	qstate = 0;
 	itteration = 0;
-	delete mstack;
+	delete[] mstack;
 }
 
 //Save some time by swapping rows between Up and Back faces that have more Up or Back pieces 
@@ -488,11 +488,10 @@ void Cube::SolveEdges()
 	byte f0, f1;
 	byte l0, l1;
 	byte r0, r1;
-	byte d0, d1;
 	
-	int *mstack = new int[Mid];
-	
-	int mptr = 0;
+	uint *mstack = new uint[Mid];
+
+	uint mptr = 0;
 	bool found;
 
 	for (int de = 0; de < 12; ++de)
@@ -519,7 +518,7 @@ void Cube::SolveEdges()
 				found = false;
 
 				mptr = 0;
-				for (int r = 1; r < Mid; ++r)
+				for (uint r = 1; r < Mid; ++r)
 				{
 					GetLeftEdgePieces(r, l0, l1);
 					if (l0 == f0 && l1 == f1) mstack[mptr++] = r;
@@ -528,7 +527,7 @@ void Cube::SolveEdges()
 				if (mptr > 0)
 				{
 					found = true;
-					for (int i = 0; i < mptr; ++i)
+					for (uint i = 0; i < mptr; ++i)
 					{
 						Move(D, mstack[i], 1);
 						Move(D, R1 - mstack[i], 1);
@@ -536,21 +535,21 @@ void Cube::SolveEdges()
 
 					FlipEdge();
 
-					for (int i = 0; i < mptr; ++i)
+					for (uint i = 0; i < mptr; ++i)
 					{
 						Move(D, mstack[i], -1);
 					}
 
 					UnFlipEdge();
 
-					for (int i = 0; i < mptr; ++i)
+					for (uint i = 0; i < mptr; ++i)
 					{
 						Move(D, R1 - mstack[i], -1);
 					}
 				}
 
 				mptr = 0;
-				for (int r = Mid; r < R1; ++r)
+				for (uint r = Mid; r < R1; ++r)
 				{
 					GetLeftEdgePieces(r, l0, l1);
 					if (l0 == f0 && l1 == f1)
@@ -562,7 +561,7 @@ void Cube::SolveEdges()
 				if (mptr > 0)
 				{
 					found = true;
-					for (int i = 0; i < mptr; ++i)
+					for (uint i = 0; i < mptr; ++i)
 					{
 						Move(D, mstack[i], 1);
 						Move(D, R1 - mstack[i], 1);
@@ -570,14 +569,14 @@ void Cube::SolveEdges()
 
 					FlipEdge();
 
-					for (int i = 0; i < mptr; ++i)
+					for (uint i = 0; i < mptr; ++i)
 					{
 						Move(D, mstack[i], -1);
 					}
 
 					UnFlipEdge();
 
-					for (int i = 0; i < mptr; ++i)
+					for (uint i = 0; i < mptr; ++i)
 					{
 						Move(D, R1 - mstack[i], -1);
 					}
@@ -585,10 +584,13 @@ void Cube::SolveEdges()
 
 				//transfer backward rows
 				mptr = 0;
-				for (int r = 1; r < R1; ++r)
+				for (uint r = 1; r < R1; ++r)
 				{
 					GetLeftEdgePieces(r, l0, l1);
-					if (l0 == f1 && l1 == f0) 	mstack[mptr++] = r;
+					if (l0 == f1 && l1 == f0)
+					{
+						mstack[mptr++] = r;
+					}
 				}
 
 				if (mptr > 0)
@@ -596,14 +598,14 @@ void Cube::SolveEdges()
 					found = true;
 					FlipEdge();
 
-					for (int i = 0; i < mptr; ++i)
+					for (uint i = 0; i < mptr; ++i)
 					{
 						Move(D, mstack[i], 1);
 					}
 
 					UnFlipEdge();
 
-					for (int i = 0; i < mptr; ++i)
+					for (uint i = 0; i < mptr; ++i)
 					{
 						Move(D, mstack[i], -1);
 					}
@@ -620,7 +622,7 @@ void Cube::SolveEdges()
 
 		//Fix parity
 
-		for (int r = 1; r < Mid; ++r)
+		for (uint r = 1; r < Mid; ++r)
 		{
 			GetRightEdgePieces(r, r0, r1);
 
@@ -636,7 +638,7 @@ void Cube::SolveEdges()
 
 	}
 
-	delete mstack;
+	delete[] mstack;
 
 }
 
@@ -908,8 +910,6 @@ void Cube::SetSourceEdge(int edge, bool set)
 
 void Cube::SolveCorners()
 {
-	
-	byte c0, c1, c2;
 	int pos = 0;
 
 	//Solve the U face corners
@@ -1204,8 +1204,13 @@ void Cube::PrintStats()
 
 Cube::Cube(int size)
 {
+	IsEven = false;
 	MoveCount = 0;
 	Hours = 0.0;
+	Mid = 0;
+	R1 = 0;
+	RowSize = 0;
+	CurrentFace = F;
 	faces = nullptr;
 	saveenabled = false;
 	stage=0;			//stage of the solve (used for recovering from a restart)
@@ -1218,6 +1223,18 @@ Cube::Cube(int size)
 Cube::Cube()
 {
 	//use this constructor when reloading the cube state
+	IsEven = false;
+	Mid = 0;
+	R1 = 0;
+	RowSize = 0;
+	CurrentFace = F;
+	MoveCount = 0;
+	Hours = 0.0;
+	faces = nullptr;
+	saveenabled = false;
+	stage = 0;			//stage of the solve (used for recovering from a restart)
+	qstate = 0;			//current quadrant being solved
+	itteration = 0;		//itteration of the current stage 
 }
 
 Cube::~Cube()
