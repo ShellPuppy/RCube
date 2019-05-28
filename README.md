@@ -2,7 +2,7 @@
 
 Rubik's Cube solver for very large cubes.  
 
-Solves any cube of any size from 1 to 65536. The code can be easily modified to handle much larger cubes. However the primary limitation is the amount of memory on a system and the length of time it takes to solve.
+Solves any cube of any size from 1 to 65536. The code can be easily modified to handle even larger cubes. However the primary limitation is the amount of memory on a system and the length of time it takes to solve.
 Solve time grows N^3 which means it takes 8 times longer to solve a cube that is 2x larger in each dimension. The number of pieces grows N^2 and the amount of work to rotate a slice is N, thus N^3;
 
 # Solve Method
@@ -19,3 +19,12 @@ The edges are solved by moving every pair of edges to the front face, then swapp
 
 # Efficiency 
 This algorithm is optimized for very large cubes. However it is terrible for small cubes. There are much much better algorithms for small cubes.
+
+# Image Export
+https://www.nayuki.io/page/tiny-png-output
+https://github.com/nayuki/Nayuki-web-published-code
+Tiny PNG Output is a small standalone library, available in C and C++, which takes RGB8.8.8 pixels and writes a PNG file.
+
+
+
+
