@@ -28,10 +28,6 @@ public:
 
 	inline const byte GetRCQ(const uint r, const uint c, int q) const;
 
-	inline const byte GetCoordR(const uint r, const uint c, int q) const;
-
-	inline const byte GetCoordC(const uint r, const uint c, int q) const;
-
 	inline void SetRC(const uint r, const uint c, const byte v);
 
 	void Initialize(byte index, uint rsize, uint msize);
@@ -47,6 +43,8 @@ public:
 	uint Count(byte color);
 	
 	void GetCounts(uint *);
+
+	bool IsFaceSolved();
 
 	Face();
 
@@ -96,42 +94,6 @@ inline const byte Face::GetRCQ(const uint r, const uint c, int q) const
 
 	return 0;
 
-}
-
-//Returns the Row number of coordinate (r,c) rotated by q
-inline const byte Face::GetCoordR(const uint r, const uint c, int q) const
-{
-	switch ((-q)&3)
-	{
-	case 0:
-		return r;
-	case 1:
-		return c;
-	case 2:
-		return R1 - r;
-	case 3:
-		return R1 - c;
-	default:
-		return r;
-	}
-}
-
-//Returns the Column number of coordinate (r,c) rotated by q
-inline const byte Face::GetCoordC(const uint r, const uint c, int q) const
-{
-	switch ((-q) & 3)
-	{
-	case 0:
-		return c;
-	case 1:
-		return (R1 - r);
-	case 2:
-		return (R1 - c);
-	case 3:
-		return r;
-	default:
-		return c;
-	}
 }
 
 //Sets the value of this face at coordinates r = row, c = column

@@ -6,7 +6,7 @@
 #include <chrono>
 
 //Pairs of edge colors
-const byte Cube::edgemap[24] =
+const byte Cube::EdgeColorMap[24] =
 {
 	5,2,
 	2,3,
@@ -70,6 +70,17 @@ const byte Cube::corners[8][3] =
 	{5,1,2},
 };
 
+//Edge rotation map - used to keep track of edges as the move during the solve
+const byte Cube::EdgeRotMap[6][4] =
+{
+	{8,11,10,9},//F
+	{3,4,9,5},	//R
+	{0,3,2,1},	//B
+	{1,6,11,7},	//L
+	{2,5,10,6},	//U
+	{0,7,8,4}	//D
+};
+
 void Cube::initalize(uint rsize)
 {
 	//Size of the cube
@@ -95,7 +106,7 @@ void Cube::initalize(uint rsize)
 	}
 }
 
-void Cube::scramble(int seed)
+void Cube::Scramble(int seed)
 {
 	uint rnd;
 
@@ -142,25 +153,49 @@ void Cube::Solve()
 	//Keep track of processing time
 	ProcessStartTime = std::chrono::high_resolution_clock::now();
 
+	//Cube Size 1 : Trivial case
+	if (RowSize == 1)
+	{
+		MoveCount++;
+		for (byte i = 0; i < 6; ++i) faces[i].SetRC(0, 0, i);
+		return;
+	}
+
+	//Size 2 : Only have to solve corners
+	if (RowSize == 2)
+	{
+		SolveCorners();
+		return;
+	}
+
+	//Odd size cubes need to have their center pieces aligned first
 	AlignTrueCenters();
 
 	//Stage 0 through 15 (solve centers)
-	if (stage < 15)
+	if (Stage < 15)
 	{
 		SolveCenters();
 	}
 
-	//State 16 (solve corners)
-	if (stage == 16)
+	//Stage 16 (solve corners)
+	if (Stage == 16)
 	{
 		SaveCubeState();
 		SolveCorners();
 	}
 
 	//State 17 (solve edges)
-	if (stage == 17)
+	if (Stage == 17)
 	{
-		SolveEdges();
+		if (IsEven)
+		{
+			SolveEdgesEven();
+		}
+		else
+		{
+			SolveEdgesOdd();
+			SolveEdgesOdd(); 
+		}
 	}
 
 	//Cube is solved
@@ -173,131 +208,138 @@ void Cube::SolveCenters()
 	//Solve each center by 'pushing' pieces to the desired face
 	//The stages are used to start the solving from a saved state
 
-	//Push R color pieces from F to R
-	if (stage == 0)
+	//No need to solve centers for cubes less than size 4
+	if (RowSize < 4)
 	{
-		PushCenterPieces(F, R, R); 
-		stage++;
+		Stage = 16;
+		return;
+	}
+
+	//Push R color pieces from F to R
+	if (Stage == 0)
+	{
+		PushCenterPieces(F, R, R);
+		Stage++;
 	}
 
 	//Push R color pieces from U to R
-	if (stage == 1)
+	if (Stage == 1)
 	{
 		SaveCubeState();
 		PushCenterPieces(U, R, R);
-		stage++;
+		Stage++;
 	}
 
 	//Push R color pieces from B to R
-	if (stage == 2)
+	if (Stage == 2)
 	{
 		SaveCubeState();
 		PushCenterPieces(B, R, R);
-		stage++;
+		Stage++;
 	}
 
 	//Push R color pieces from L to R
-	if (stage == 3)
+	if (Stage == 3)
 	{
 		SaveCubeState();
 		PushCenterPieces(L, R, R);
-		stage++;
+		Stage++;
 	}
 
 	//Push R color pieces from D to R
-	if (stage == 4)
+	if (Stage == 4)
 	{
 		SaveCubeState();
 		PushCenterPieces(D, R, R);
-		stage++;
+		Stage++;
 	}
 
 	//Push L color pieces from U to L
-	if (stage == 5)
+	if (Stage == 5)
 	{
 		SaveCubeState();
 		PushCenterPieces(U, L, L);
-		stage++;
+		Stage++;
 	}
 
 	//Push L color pieces from D to L
-	if (stage == 6)
+	if (Stage == 6)
 	{
 		SaveCubeState();
 		PushCenterPieces(D, L, L);
-		stage++;
+		Stage++;
 	}
 
 	//Push L color pieces from B to L
-	if (stage == 7)
+	if (Stage == 7)
 	{
 		SaveCubeState();
 		PushCenterPieces(B, L, L);
-		stage++;
+		Stage++;
 	}
 
 	//Push L color pieces from F to L
-	if (stage == 8)
+	if (Stage == 8)
 	{
 		SaveCubeState();
 		PushCenterPieces(F, L, L);
-		stage++;
+		Stage++;
 	}
 
 	//Push F color pieces from B to F
-	if (stage == 9)
+	if (Stage == 9)
 	{
 		SaveCubeState();
 		PushCenterPieces(B, F, F);
-		stage++;
+		Stage++;
 	}
 
 	//Push F color pieces from U to F
-	if (stage == 10)
+	if (Stage == 10)
 	{
 		SaveCubeState();
 		PushCenterPieces(U, F, F);
-		stage++;
+		Stage++;
 	}
 
 	//Push F color pieces from D to F
-	if (stage == 11)
+	if (Stage == 11)
 	{
 		SaveCubeState();
 		PushCenterPieces(D, F, F);
-		stage++;
+		Stage++;
 	}
 
 	//Push D color pieces from U to D
-	if (stage == 12)
+	if (Stage == 12)
 	{
 		SaveCubeState();
 		PushCenterPieces(U, D, D);
-		stage++;
+		Stage++;
 	}
 
 	//Push D color pieces from B to D
-	if (stage == 13)
+	if (Stage == 13)
 	{
 		SaveCubeState();
 		PushCenterPieces(B, D, D);
-		stage++;
+		Stage++;
 	}
 
 	//Optomize Top Center
-	if (stage == 14)
+	if (Stage == 14)
 	{
 		SaveCubeState();
 		OptomizeTopCenter();
-		stage++;
+		Stage++;
 	}
 
 	//Push U color pieces from B to U
-	if (stage == 15)
+	if (Stage == 15)
 	{
 		SaveCubeState();
 		PushCenterPieces(U, B, B);
-		stage++;
+		Stage++;
 	}
 }
 
@@ -305,7 +347,7 @@ void Cube::SolveCenters()
 void Cube::AlignTrueCenters()
 {
 	if (IsEven) return; //skip this step if its an even size cube
-	
+
 	byte q;
 
 	//Find Front Center piece
@@ -356,24 +398,24 @@ void Cube::PushCenterPieces(byte src, byte dst, byte color)
 
 	if (IsOpposite(src, dst)) d = 2;
 
-	uint *mstack = new uint[Mid];		//Temporary array to keep track of rows that were used
+	uint* mstack = new uint[Mid];		//Temporary array to keep track of rows that were used
 
 	uint stkptr = 0;
 	uint pieces = 0;
 	uint start = Mid;
 
 	//If starting from a save state then set the start point
-	if (itteration > 0) start = itteration;
-	
-	for (int quadrant = qstate; quadrant < 4; ++quadrant)
+	if (Itteration > 0) start = Itteration;
+
+	for (int quadrant = QState; quadrant < 4; ++quadrant)
 	{
-		this->qstate = quadrant;
+		this->QState = quadrant;
 
 		for (uint r = start; r < R1; ++r)
 		{
-			this->itteration = r;
+			this->Itteration = r;
 
-			if (saveenabled)
+			if (SaveEnabled)
 			{
 				//Save 
 				if (CurrentProcessDuration() >= 3.0)
@@ -431,8 +473,8 @@ void Cube::PushCenterPieces(byte src, byte dst, byte color)
 		Move(src, 0, 1);
 	}
 
-	qstate = 0;
-	itteration = 0;
+	QState = 0;
+	Itteration = 0;
 	delete[] mstack;
 }
 
@@ -483,198 +525,518 @@ int Cube::FindCommutatorMap(byte src, byte dst)
 
 #pragma region Edges
 
-void Cube::SolveEdges()
+//Solve the edges for a odd size cube
+void Cube::SolveEdgesOdd()
 {
-	byte f0, f1;
-	byte l0, l1;
+	byte c0, c1;
 	byte r0, r1;
-	
-	uint *mstack = new uint[Mid];
+	byte l0, l1;
 
-	uint mptr = 0;
+	uint* mstack = new uint[RowSize];	//Array to store potential edge pairings
+	uint mptr;
 	bool found;
 
+	//Reset the edge solve states
+	memset(EdgeState, 0, 12);
+
+	//Pre check for edges that have flipped center pieces (avoid parity problems)
 	for (int de = 0; de < 12; ++de)
 	{
-
-		//Move edge into place
+		//Move current edge so that its on the right side front face
 		SetDestinationEdge(de, true);
 
-		//Get the two edge colors 
+		//Fix issue with the right center edge piece being backwards
+		GetRightEdgeColors(Mid, r0, r1);
 
-		f0 = edgemap[de << 1];
-		f1 = edgemap[(de << 1) + 1];
-
-		for (int se = 0; se < 12; ++se)
+		for (int i = 0; i < 12; i++)
 		{
-			//todo skip if edge is solved
+			c0 = EdgeColorMap[2 * i];
+			c1 = EdgeColorMap[2 * i + 1];
 
-			//move edge into place
-			SetSourceEdge(se, true);
-
-			//transfer good rows
-			do
+			if (r0 == c1 && r1 == c0)
 			{
-				found = false;
-
-				mptr = 0;
-				for (uint r = 1; r < Mid; ++r)
-				{
-					GetLeftEdgePieces(r, l0, l1);
-					if (l0 == f0 && l1 == f1) mstack[mptr++] = r;
-				}
-
-				if (mptr > 0)
-				{
-					found = true;
-					for (uint i = 0; i < mptr; ++i)
-					{
-						Move(D, mstack[i], 1);
-						Move(D, R1 - mstack[i], 1);
-					}
-
-					FlipEdge();
-
-					for (uint i = 0; i < mptr; ++i)
-					{
-						Move(D, mstack[i], -1);
-					}
-
-					UnFlipEdge();
-
-					for (uint i = 0; i < mptr; ++i)
-					{
-						Move(D, R1 - mstack[i], -1);
-					}
-				}
-
-				mptr = 0;
-				for (uint r = Mid; r < R1; ++r)
-				{
-					GetLeftEdgePieces(r, l0, l1);
-					if (l0 == f0 && l1 == f1)
-					{
-						mstack[mptr++] = r;
-					}
-				}
-
-				if (mptr > 0)
-				{
-					found = true;
-					for (uint i = 0; i < mptr; ++i)
-					{
-						Move(D, mstack[i], 1);
-						Move(D, R1 - mstack[i], 1);
-					}
-
-					FlipEdge();
-
-					for (uint i = 0; i < mptr; ++i)
-					{
-						Move(D, mstack[i], -1);
-					}
-
-					UnFlipEdge();
-
-					for (uint i = 0; i < mptr; ++i)
-					{
-						Move(D, R1 - mstack[i], -1);
-					}
-				}
-
-				//transfer backward rows
-				mptr = 0;
-				for (uint r = 1; r < R1; ++r)
-				{
-					GetLeftEdgePieces(r, l0, l1);
-					if (l0 == f1 && l1 == f0)
-					{
-						mstack[mptr++] = r;
-					}
-				}
-
-				if (mptr > 0)
-				{
-					found = true;
-					FlipEdge();
-
-					for (uint i = 0; i < mptr; ++i)
-					{
-						Move(D, mstack[i], 1);
-					}
-
-					UnFlipEdge();
-
-					for (uint i = 0; i < mptr; ++i)
-					{
-						Move(D, mstack[i], -1);
-					}
-				}
-
-			} while (found);
-
-
-
-
-			//Move edge back to origin
-			SetSourceEdge(se, false);
-		}
-
-		//Fix parity
-
-		for (uint r = 1; r < Mid; ++r)
-		{
-			GetRightEdgePieces(r, r0, r1);
-
-			if (r0 == f1 && r1 == f0) FixParity(r);
-			{
-				mstack[mptr++] = r;
+				//printf("a %i\n", de);
+				Move(D, Mid, 1);
+				FlipRightEdge();
+				Move(D, Mid, -1);
+				UnFlipRightEdge();
 			}
 		}
 
 
-		//Move edge back to origin
+
+		SetDestinationEdge(de, false);
+	}
+
+
+	//For each of the 12 edges
+	for (int de = 0; de < 12; ++de)
+	{
+		//Move current edge so that its on the right side front face
+		SetDestinationEdge(de, true);
+
+		//Get the two colors for this edge
+		c0 = EdgeColorMap[2 * de];
+		c1 = EdgeColorMap[2 * de + 1];
+
+		//Loop through all other edges 
+		for (int se = 0; se < 12; ++se)
+		{
+			//Skip this edge if its already been solved 
+			if (EdgeState[se]) continue;
+
+			//Move edge so its on the left side of the front face
+			SetSourceEdge(se, true);
+
+			//Fix issue with the right center edge piece being backwards
+			GetRightEdgeColors(Mid, r0, r1);
+			if (r0 == c1 && r1 == c0 && de < 11)
+			{
+				//printf("x %i\n", de);
+				Move(D, Mid, 1);
+				FlipRightEdge();
+				Move(D, Mid, -1);
+				UnFlipRightEdge();
+			}
+
+			do {
+				found = false;
+
+				//Step 1a 
+				//Find pieces on the left that can be moved to the right
+				mptr = 0;
+				for (uint r = 1; r < R1; ++r)
+				{
+					GetLeftEdgeColors(r, l0, l1);
+					GetRightEdgeColors(r, r0, r1);
+
+					//Piece exists on the left?
+					if ((l0 == c0 && l1 == c1) || (l0 == c1 && l1 == c0))
+					{
+						//No piece exists on the right?
+						if (!((r0 == c0 && r1 == c1) || (r0 == c1 && r1 == c0)))
+						{
+							if (r != Mid) mstack[mptr++] = r;
+						}
+					}
+				}
+
+				//Step 1b
+				//Move pieces from the left to the right
+				if (mptr > 0)
+				{
+					found = true;
+					for (uint i = 0; i < mptr; ++i)
+					{
+						if (mstack[i] < Mid)
+						{
+							Move(D, mstack[i], 1);
+							Move(D, R1 - mstack[i], 1);
+						}
+					}
+					FlipRightEdge();
+					for (uint i = 0; i < mptr; ++i)
+					{
+						if (mstack[i] < Mid) 	Move(D, mstack[i], -1);
+					}
+					UnFlipRightEdge();
+					for (uint i = 0; i < mptr; ++i)
+					{
+						if (mstack[i] < Mid) 	Move(D, R1 - mstack[i], -1);
+					}
+
+
+
+					for (uint i = 0; i < mptr; ++i)
+					{
+						if (mstack[i] >= Mid)
+						{
+							Move(D, mstack[i], 1);
+							Move(D, R1 - mstack[i], 1);
+						}
+					}
+					FlipRightEdge();
+					for (uint i = 0; i < mptr; ++i)
+					{
+						if (mstack[i] >= Mid) 	Move(D, mstack[i], -1);
+					}
+					UnFlipRightEdge();
+					for (uint i = 0; i < mptr; ++i)
+					{
+						if (mstack[i] >= Mid) 	Move(D, R1 - mstack[i], -1);
+					}
+
+				}
+
+				//Step 2a
+				//Find pieces on the left that can be moved to the right
+				mptr = 0;
+				for (uint r = 1; r < R1; ++r)
+				{
+					GetLeftEdgeColors(r, l0, l1);
+					GetRightEdgeColors(r, r0, r1);
+
+					//Piece exists on the left?
+					if ((l0 == c0 && l1 == c1) || (l0 == c1 && l1 == c0))
+					{
+						//Also a piece exists on the right?
+						if (((r0 == c0 && r1 == c1) || (r0 == c1 && r1 == c0)))
+						{
+							if(r != Mid) mstack[mptr++] = r;
+						}
+					}
+				}
+
+				//Step 2b
+				//Move pieces from the left to the right
+				if (mptr > 0)
+				{
+					found = true;
+					FlipRightEdge();
+					for (uint i = 0; i < mptr; ++i) { Move(D, mstack[i], 1); }
+					UnFlipRightEdge();
+					for (uint i = 0; i < mptr; ++i) { Move(D, mstack[i], -1); }
+				}
+
+				//Step 3
+				//Move center edge pieces from left to right
+				GetLeftEdgeColors(Mid, l0, l1);
+				if (l0 == c0 && l1 == c1)
+				{
+					FlipLeftEdge();
+					MoveCenterEdge(false);
+					UnFlipLeftEdge();
+				}
+
+				if (l0 == c1 && l1 == c0) MoveCenterEdge(false);
+
+			} while (found);  //Repeat the process if more additional pieces are brought into the edge after moving
+
+			//Move edge back to its original location
+			SetSourceEdge(se, false);
+		}
+
+		//Fix remaining parity issues for this edge
+		for (uint r = 1; r < Mid; ++r)
+		{
+			GetRightEdgeColors(r, r0, r1);
+			if (r0 == c1 && r1 == c0) FixParity(r);
+		}
+
+		//Move edge back to the correct face and orientation 
 		SetDestinationEdge(de, false);
 
+		//This edge is now solved
+		EdgeState[de] = true;
 	}
 
 	delete[] mstack;
+}
 
+//Solve the edges for a even size cube
+void Cube::SolveEdgesEven()
+{
+	byte c0, c1;
+	byte r0, r1;
+	byte l0, l1;
+
+	uint* mstack = new uint[RowSize];	//Array to store potential edge pairings
+	uint mptr;
+	bool found;
+
+	//Reset the edge solve states
+	memset(EdgeState, 0, 12);
+
+	//For each of the 12 edges
+	for (int de = 0; de < 12; ++de)
+	{
+		//Move current edge so that its on the right side front face
+		SetDestinationEdge(de, true);
+
+		//Get the two colors for this edge
+		c0 = EdgeColorMap[2 * de];
+		c1 = EdgeColorMap[2 * de + 1];
+
+		//Loop through all other edges 
+		for (int se = 0; se < 12; ++se)
+		{
+			//Skip this edge if its already been solved 
+			if (EdgeState[se]) continue; 
+
+			//Move edge so its on the left side of the front face
+			SetSourceEdge(se, true);
+
+			do {
+				found = false;
+
+				//Step 1a 
+				//Find pieces on the left that can be moved to the right
+				mptr = 0;
+				for (uint r = 1; r < R1; ++r)
+				{
+					GetLeftEdgeColors(r, l0, l1);
+					GetRightEdgeColors(r, r0, r1);
+
+					//Piece exists on the left?
+					if ((l0 == c0 && l1 == c1) || (l0 == c1 && l1 == c0))
+					{
+						//No piece exists on the right?
+						if (!((r0 == c0 && r1 == c1) || (r0 == c1 && r1 == c0)))
+						{
+							mstack[mptr++] = r;
+						}
+					}
+				}
+
+				//Step 1b
+				//Move pieces from the left to the right
+				if (mptr > 0)
+				{
+					found = true;
+					for (uint i = 0; i < mptr; ++i)
+					{
+						if (mstack[i] < Mid)
+						{
+							Move(D, mstack[i], 1);
+							Move(D, R1 - mstack[i], 1);
+						}
+					}
+					FlipRightEdge();
+					for (uint i = 0; i < mptr; ++i)
+					{
+						if (mstack[i] < Mid) 	Move(D, mstack[i], -1);
+					}
+					UnFlipRightEdge();
+					for (uint i = 0; i < mptr; ++i)
+					{
+						if (mstack[i] < Mid) 	Move(D, R1 - mstack[i], -1);
+					}
+
+
+
+					for (uint i = 0; i < mptr; ++i)
+					{
+						if (mstack[i] >= Mid)
+						{
+							Move(D, mstack[i], 1);
+							Move(D, R1 - mstack[i], 1);
+						}
+					}
+					FlipRightEdge();
+					for (uint i = 0; i < mptr; ++i)
+					{
+						if (mstack[i] >= Mid) 	Move(D, mstack[i], -1);
+					}
+					UnFlipRightEdge();
+					for (uint i = 0; i < mptr; ++i)
+					{
+						if (mstack[i] >= Mid) 	Move(D, R1 - mstack[i], -1);
+					}
+
+				}
+
+				//Step 2a
+				//Find pieces on the left that can be moved to the right
+				mptr = 0;
+				for (uint r = 1; r < R1; ++r)
+				{
+					GetLeftEdgeColors(r, l0, l1);
+					GetRightEdgeColors(r, r0, r1);
+
+					//Piece exists on the left?
+					if ((l0 == c0 && l1 == c1) || (l0 == c1 && l1 == c0))
+					{
+						//Also a piece exists on the right?
+						if (((r0 == c0 && r1 == c1) || (r0 == c1 && r1 == c0)))
+						{
+							mstack[mptr++] = r;
+						}
+					}
+				}
+
+				//Step 2b
+				//Move pieces from the left to the right
+				if (mptr > 0 && mptr < RowSize)
+				{
+					found = true;
+					FlipRightEdge();
+					for (uint i = 0; i < mptr; i++) { Move(D, mstack[i], 1); }
+					UnFlipRightEdge();
+					for (uint i = 0; i < mptr; i++) { Move(D, mstack[i], -1); }
+				}
+
+			} while (found);  //Repeat the process if more additional pieces are brought into the edge after moving
+
+			//Move edge back to its original location
+			SetSourceEdge(se, false);
+		}
+
+		//Fix remaining parity issues for this edge
+		for (uint r = 1; r < Mid; ++r)
+		{
+			GetRightEdgeColors(r, r0, r1);
+			if (r0 == c1 && r1 == c0) FixParity(r);
+		}
+
+		//Move edge back to the correct face and orientation 
+		SetDestinationEdge(de, false);
+		
+		//this edge is now solved
+		EdgeState[de] = true; 
+	}
+
+	delete[] mstack;
 }
 
 //Flips the F-R edge
-void Cube::FlipEdge()
+void Cube::FlipRightEdge()
 {
-	Move(R, 0, 1);
-	Move(U, 0, 1);
-	Move(R, 0, -1);
-	Move(F, 0, 1);
-	Move(R, 0, -1);
-	Move(F, 0, -1);
-	Move(R, 0, 1);
+	Move(R, 0, 1); 
+	UpdateEdgeRotation(R, 1);
+	Move(U, 0, 1); 
+	UpdateEdgeRotation(U, 1);
+	Move(R, 0, -1); 
+	UpdateEdgeRotation(R, -1);
+	Move(F, 0, 1); 
+	UpdateEdgeRotation(F, 1);
+	Move(R, 0, -1); 
+	UpdateEdgeRotation(R, -1);
+	Move(F, 0, -1); 
+	UpdateEdgeRotation(F, -1);
+	Move(R, 0, 1); 
+	UpdateEdgeRotation(R, 1);
 }
 
 //Un-Flips the F-R edge 
-void Cube::UnFlipEdge()
+void Cube::UnFlipRightEdge()
 {
-	Move(R, 0, -1);
-	Move(F, 0, 1);
-	Move(R, 0, 1);
-	Move(F, 0, -1);
-	Move(R, 0, 1);
+	Move(R, 0, -1); 
+	UpdateEdgeRotation(R, -1);
+	Move(F, 0, 1); 
+	UpdateEdgeRotation(F, 1);
+	Move(R, 0, 1); 
+	UpdateEdgeRotation(R, 1);
+	Move(F, 0, -1); 
+	UpdateEdgeRotation(F, -1);
+	Move(R, 0, 1); 
+	UpdateEdgeRotation(R, 1);
+	Move(U, 0, -1); 
+	UpdateEdgeRotation(U, -1);
+	Move(R, 0, -1); 
+	UpdateEdgeRotation(R, -1);
+}
+
+//Flips the F-L edge
+void Cube::FlipLeftEdge()
+{
+	Move(L, 0, -1);
+	UpdateEdgeRotation(L, -1);
 	Move(U, 0, -1);
-	Move(R, 0, -1);
+	UpdateEdgeRotation(U, -1);
+	Move(L, 0, 1);
+	UpdateEdgeRotation(L, 1);
+	Move(F, 0, -1);
+	UpdateEdgeRotation(F, -1);
+	Move(L, 0, 1);
+	UpdateEdgeRotation(L, 1);
+	Move(F, 0, 1);
+	UpdateEdgeRotation(F, 1);
+	Move(L, 0, -1);
+	UpdateEdgeRotation(L, -1);
+}
+
+//Un Flips the F-L edge
+void Cube::UnFlipLeftEdge()
+{
+	Move(L, 0, 1);
+	UpdateEdgeRotation(L, 1);
+	Move(F, 0, -1);
+	UpdateEdgeRotation(F, -1);
+	Move(L, 0, -1);
+	UpdateEdgeRotation(L, -1);
+	Move(F, 0, 1);
+	UpdateEdgeRotation(F, 1);
+	Move(L, 0, -1);
+	UpdateEdgeRotation(L, -1);
+	Move(U, 0, 1);
+	UpdateEdgeRotation(U, 1);
+	Move(L, 0, 1);
+	UpdateEdgeRotation(L, 1);
+}
+
+//Move the front face center edge from the left side to the right side
+void Cube::MoveCenterEdge(bool flipped)
+{
+
+	//Find unsolved center edge on the U face 0,1,2,3
+	int q = -1;
+
+	if (!EdgeState[6]) q = 1;
+	if (!EdgeState[2]) q = 2;
+	if (!EdgeState[5]) q = 3;
+	if (!EdgeState[10]) q = 0;
+
+	if (q >= 0)
+	{
+		if (q > 0)	Move(U, 0, -q);
+
+		Move(L, Mid, 2);
+		Move(F, 0, 1);
+		Move(L, Mid, -1);
+		Move(F, 0, 2);
+		Move(L, Mid, 1);
+		Move(F, 0, 1);
+		Move(L, Mid, 2);
+
+		if (q > 0)	Move(U, 0, q);
+
+		return;
+	}
+
+	//Find unsolved center edge on the D face 0,1,2,3
+	q = -1;
+
+	if (!EdgeState[7]) q = 1;
+	if (!EdgeState[0]) q = 2;
+	if (!EdgeState[4]) q = 3;
+	if (!EdgeState[8]) q = 0;
+
+	if (q >= 0)
+	{
+		if (q > 0)	Move(D, 0, q);
+
+		Move(L, Mid, 2);
+		Move(F, 0, -1);
+		Move(L, Mid, 1);
+		Move(F, 0, 2);
+		Move(L, Mid, -1);
+		Move(F, 0, -1);
+		Move(L, Mid, 2);
+
+		if (q > 0)	Move(D, 0, -q);
+
+		return;
+	}
+
+	if (!flipped)
+	{
+		Move(B, 0, 1);
+		UpdateEdgeRotation(B, 1);
+		MoveCenterEdge(true);
+		Move(B, 0, -1);
+		UpdateEdgeRotation(B, -1);
+	}
 }
 
 //Get the values of an edge piece on the left side of the F face
-void Cube::GetLeftEdgePieces(int row, byte &l0, byte &l1)
+void Cube::GetLeftEdgeColors(int row, byte& l0, byte& l1)
 {
 	l0 = faces[L].GetRC(row, R1);
 	l1 = faces[F].GetRC(row, 0);
 }
 
 //Get the values of an edge piece on the right side of the F face
-void Cube::GetRightEdgePieces(int row, byte &r0, byte &r1)
+void Cube::GetRightEdgeColors(int row, byte& r0, byte& r1)
 {
 	r0 = faces[F].GetRC(row, R1);
 	r1 = faces[R].GetRC(row, 0);
@@ -708,44 +1070,44 @@ void Cube::SetDestinationEdge(int edge, bool set)
 		switch (edge)
 		{
 		case 0: //D-B
-			Move(D, 0, -1);
-			Move(R, 0, 1);
+			Move(D, 0, -1); UpdateEdgeRotation(D, -1);
+			Move(R, 0, 1);  UpdateEdgeRotation(R, 1);
 			break;
 		case 1: //B-L
-			Move(B, 0, 2);
-			Move(R, 0, 2);
+			Move(B, 0, 2);  UpdateEdgeRotation(B, 2);
+			Move(R, 0, 2);  UpdateEdgeRotation(R, 2);
 			break;
 		case 2://B-U
-			Move(B, 0, -1);
-			Move(R, 0, 2);
+			Move(B, 0, -1);	 UpdateEdgeRotation(B, -1);
+			Move(R, 0, 2); UpdateEdgeRotation(R, 2);
 			break;
 		case 3://B-R
-			Move(R, 0, 2);
+			Move(R, 0, 2); UpdateEdgeRotation(R, 2);
 			break;
 		case 4://D-R
-			Move(R, 0, 1);
+			Move(R, 0, 1); UpdateEdgeRotation(R, 1);
 			break;
 		case 5://U-R
-			Move(R, 0, -1);
+			Move(R, 0, -1); UpdateEdgeRotation(R, -1);
 			break;
 		case 6://U-L
-			Move(U, 0, 2);
-			Move(R, 0, -1);
+			Move(U, 0, 2); UpdateEdgeRotation(U, 2);
+			Move(R, 0, -1); UpdateEdgeRotation(R, -1);
 			break;
 		case 7://D-L
-			Move(D, 0, 2);
-			Move(R, 0, 1);
+			Move(D, 0, 2); UpdateEdgeRotation(D, 2);
+			Move(R, 0, 1); UpdateEdgeRotation(R, 1);
 			break;
 		case 8://F-D
-			Move(F, 0, -1);
+			Move(F, 0, -1); UpdateEdgeRotation(F, -1);
 			break;
 		case 9://F-R
 			break;
 		case 10://F-U
-			Move(F, 0, 1);
+			Move(F, 0, 1); UpdateEdgeRotation(F, 1);
 			break;
 		case 11://F-L
-			Move(F, 0, 2);
+			Move(F, 0, 2); UpdateEdgeRotation(F, 2);
 			break;
 		}
 		return;
@@ -756,44 +1118,44 @@ void Cube::SetDestinationEdge(int edge, bool set)
 		switch (edge)
 		{
 		case 0: //D-B
-			Move(R, 0, -1);
-			Move(D, 0, 1);
+			Move(R, 0, -1); UpdateEdgeRotation(R, -1);
+			Move(D, 0, 1); UpdateEdgeRotation(D, 1);
 			break;
 		case 1: //B-L
-			Move(R, 0, 2);
-			Move(B, 0, 2);
+			Move(R, 0, 2); UpdateEdgeRotation(R, 2);
+			Move(B, 0, 2); UpdateEdgeRotation(B, 2);
 			break;
 		case 2://B-U
-			Move(R, 0, 2);
-			Move(B, 0, 1);
+			Move(R, 0, 2); UpdateEdgeRotation(R, 2);
+			Move(B, 0, 1); UpdateEdgeRotation(B, 1);
 			break;
 		case 3://B-R
-			Move(R, 0, 2);
+			Move(R, 0, 2); UpdateEdgeRotation(R, 2);
 			break;
 		case 4://D-R
-			Move(R, 0, -1);
+			Move(R, 0, -1); UpdateEdgeRotation(R, -1);
 			break;
 		case 5://U-R
-			Move(R, 0, 1);
+			Move(R, 0, 1); UpdateEdgeRotation(R, 1);
 			break;
-		case 6://U-L
-			Move(R, 0, 1);
-			Move(U, 0, 2);
+		case 6://U-L 
+			Move(R, 0, 1); UpdateEdgeRotation(R, 1);
+			Move(U, 0, 2); UpdateEdgeRotation(U, 2);
 			break;
 		case 7://D-L
-			Move(R, 0, -1);
-			Move(D, 0, 2);
+			Move(R, 0, -1); UpdateEdgeRotation(R, -1);
+			Move(D, 0, 2); UpdateEdgeRotation(D, 2);
 			break;
 		case 8://F-D
-			Move(F, 0, 1);
+			Move(F, 0, 1); UpdateEdgeRotation(F, 1);
 			break;
 		case 9://F-R
 			break;
 		case 10://F-U
-			Move(F, 0, -1);
+			Move(F, 0, -1); UpdateEdgeRotation(F, -1);
 			break;
 		case 11://F-L
-			Move(F, 0, 2);
+			Move(F, 0, 2); UpdateEdgeRotation(F, 2);
 			break;
 		}
 	}
@@ -808,46 +1170,61 @@ void Cube::SetSourceEdge(int edge, bool set)
 		{
 		case 0: //D-B
 			Move(D, 0, 1);
+			UpdateEdgeRotation(D, 1);
 			Move(L, 0, -1);
+			UpdateEdgeRotation(L, -1);
 			break;
 		case 1: //B-L
 			Move(L, 0, 2);
+			UpdateEdgeRotation(L, 2);
 			break;
 		case 2://B-U
 			Move(U, 0, -1);
+			UpdateEdgeRotation(U, -1);
 			Move(L, 0, 1);
+			UpdateEdgeRotation(L, 1);
 			break;
 		case 3://B-R
 			Move(B, 0, 2);
+			UpdateEdgeRotation(B, 2);
 			Move(L, 0, 2);
+			UpdateEdgeRotation(L, 2);
 			break;
 		case 4://D-R
 			Move(D, 0, 2);
+			UpdateEdgeRotation(D, 2);
 			Move(L, 0, -1);
+			UpdateEdgeRotation(L, -1);
 			break;
 		case 5://U-R
 			Move(U, 0, 2);
+			UpdateEdgeRotation(U, 2);
 			Move(L, 0, 1);
+			UpdateEdgeRotation(L, 1);
 			break;
 		case 6://U-L
 			Move(L, 0, 1);
+			UpdateEdgeRotation(L, 1);
 			break;
 		case 7://D-L
 			Move(L, 0, -1);
+			UpdateEdgeRotation(L, -1);
 			break;
 		case 8://F-D
 			Move(D, 0, -1);
+			UpdateEdgeRotation(D, -1);
 			Move(L, 0, -1);
+			UpdateEdgeRotation(L, -1);
 			break;
-		case 9://F-R
-			//Move(F, 0, 2);
+		case 9://F-R 
 			break;
 		case 10://F-U
 			Move(U, 0, 1);
+			UpdateEdgeRotation(U, 1);
 			Move(L, 0, 1);
+			UpdateEdgeRotation(L, 1);
 			break;
 		case 11://F-L
-
 			break;
 		}
 		return;
@@ -858,50 +1235,81 @@ void Cube::SetSourceEdge(int edge, bool set)
 		switch (edge)
 		{
 		case 0: //D-B
-			Move(L, 0, 1);
-			Move(D, 0, -1);
+			Move(L, 0, 1); UpdateEdgeRotation(L, 1);
+			Move(D, 0, -1); UpdateEdgeRotation(D, -1);
 			break;
-		case 1: //B-L
-			Move(L, 0, 2);
+		case 1: //B-L 
+			Move(L, 0, 2); UpdateEdgeRotation(L, 2);
 			break;
 		case 2://B-U
-			Move(L, 0, -1);
-			Move(U, 0, 1);
+			Move(L, 0, -1); UpdateEdgeRotation(L, -1);
+			Move(U, 0, 1); UpdateEdgeRotation(U, 1);
 			break;
 		case 3://B-R
-			Move(L, 0, 2);
-			Move(B, 0, 2);
+			Move(L, 0, 2); UpdateEdgeRotation(L, 2);
+			Move(B, 0, 2); UpdateEdgeRotation(B, 2);
 			break;
 		case 4://D-R
-			Move(L, 0, 1);
-			Move(D, 0, 2);
+			Move(L, 0, 1); UpdateEdgeRotation(L, 1);
+			Move(D, 0, 2); UpdateEdgeRotation(D, 2);
 			break;
 		case 5://U-R
-			Move(L, 0, -1);
-			Move(U, 0, 2);
+			Move(L, 0, -1); UpdateEdgeRotation(L, -1);
+			Move(U, 0, 2); UpdateEdgeRotation(U, 2);
 			break;
 		case 6://U-L
-			Move(L, 0, -1);
+			Move(L, 0, -1); UpdateEdgeRotation(L, -1);
 			break;
 		case 7://D-L
-			Move(L, 0, 1);
+			Move(L, 0, 1); UpdateEdgeRotation(L, 1);
 			break;
 		case 8://F-D
-			Move(L, 0, 1);
-			Move(D, 0, 1);
+			Move(L, 0, 1); UpdateEdgeRotation(L, 1);
+			Move(D, 0, 1); UpdateEdgeRotation(D, 1);
 			break;
 		case 9://F-R
-			//Move(F, 0, 2);
 			break;
 		case 10://F-U
-			Move(L, 0, -1);
-			Move(U, 0, -1);
+			Move(L, 0, -1); UpdateEdgeRotation(L, -1);
+			Move(U, 0, -1); UpdateEdgeRotation(U, -1);
 			break;
 		case 11://F-L
-
 			break;
 		}
 	}
+}
+
+//Keep track of the location of each edge as they are moved around 
+//Prevents accidentally disrupting a solved edge
+void Cube::UpdateEdgeRotation(byte faceid, int steps)
+{
+	const byte* e = EdgeRotMap[faceid];
+
+	if (steps > 0)
+	{
+		for (int i = 0; i < steps; ++i)
+		{
+			bool tmp = EdgeState[e[3]];
+
+			EdgeState[e[3]] = EdgeState[e[2]];
+			EdgeState[e[2]] = EdgeState[e[1]];
+			EdgeState[e[1]] = EdgeState[e[0]];
+			EdgeState[e[0]] = tmp;
+		}
+	}
+
+	if (steps < 0)
+	{
+		for (int i = 0; i < abs(steps); ++i)
+		{
+			bool tmp = EdgeState[e[0]];
+			EdgeState[e[0]] = EdgeState[e[1]];
+			EdgeState[e[1]] = EdgeState[e[2]];
+			EdgeState[e[2]] = EdgeState[e[3]];
+			EdgeState[e[3]] = tmp;
+		}
+	}
+
 }
 
 #pragma endregion
@@ -953,7 +1361,7 @@ void Cube::SolveCorners()
 			Move(D, 0, -1);
 			break;
 		}
-		
+
 		pos = FindCorner(i);
 
 		while (!(pos == 3 && faces[U].GetRC(0, R1) == U))
@@ -984,8 +1392,6 @@ void Cube::SolveCorners()
 
 	int c[3];
 
-	bool aligned = false;
-
 	//The remaining corners can end up in 6 different configurations
 	c[FindCorner(5)] = 5;
 	c[FindCorner(6)] = 6;
@@ -997,7 +1403,7 @@ void Cube::SolveCorners()
 	{
 		Move(U, 0, 1);
 	}
-	
+
 	if (c[0] == 5 && c[1] == 7 && c[2] == 6)
 	{
 		Move(U, 0, 1);
@@ -1053,7 +1459,7 @@ void Cube::SolveCorners()
 	Move(L, 0, 2);
 	Move(R, 0, 2);
 
-	stage++;
+	Stage++;
 }
 
 //Rotate 3 corners on the U face
@@ -1070,7 +1476,7 @@ void Cube::FlipCorners()
 }
 
 //Gets the 3 face colors of a corner
-void Cube::GetCorner(int cr, byte &c0, byte &c1, byte &c2)
+void Cube::GetCorner(int cr, byte& c0, byte& c1, byte& c2)
 {
 	switch (cr)
 	{
@@ -1142,15 +1548,13 @@ int Cube::FindCorner(int cr)
 	return -1;
 }
 
-
-
 #pragma endregion
 
 #pragma region Cube State
 
 void Cube::SaveCubeState()
 {
-	if (!saveenabled) return;
+	if (!SaveEnabled) return;
 
 	printf("Saving cube state\n");
 
@@ -1165,7 +1569,7 @@ void Cube::SaveCubeState()
 	out.close();
 
 	for (int i = 0; i < 6; ++i) faces[i].SaveFaceState();
-	
+
 	printf("Done saving cube state\n");
 
 	//Reset process timer
@@ -1175,7 +1579,7 @@ void Cube::SaveCubeState()
 void Cube::LoadCubeState()
 {
 	printf("Loading cube from file\n");
-	
+
 	std::ifstream in("state//cubestate.bin", std::ios::out | std::ios::binary);
 	in.read((char*)this, sizeof(Cube));
 	in.close();
@@ -1190,34 +1594,81 @@ void Cube::LoadCubeState()
 
 }
 
+//Calculate the number of physical pieces 
+uint64 Cube::PieceCount()
+{
+	if (RowSize <= 1) return 1;
+	uint64 result = (uint64)RowSize; //size of a face
+	result *= result;
+	result *= 6;	// 6 faces
+	result -= 16;	// Corner pieces were counted 3 times
+	result -= ((uint64)RowSize - (uint64)2) * 12; //Edge pieces were counted 2 times
+	return result;
+}
+
+
 void Cube::PrintStats()
 {
-	printf("\nCube Size : %i\n", RowSize);
+	printf("Cube Size : %i\n", RowSize);
+	printf("Total Pieces : %llu\n", PieceCount());
 	printf("Total Moves : %llu\n", MoveCount);
+	printf("Moves per piece : %f\n", (double)MoveCount / (double)PieceCount());
 	printf("Total Hours : %.7f\n", Hours);
-	printf("Stage : %i\n", stage);
-	printf("Quadrant : %i\n", qstate);
-	printf("Itteration : %i\n\n", itteration);
+
+	if (SaveEnabled)
+	{
+		printf("Stage : %i\n", Stage);
+		printf("Quadrant : %i\n", QState);
+		printf("Itteration : %i\n\n", Itteration);
+	}
+
+	if (IsCubeSolved())
+	{
+		printf("Cube is solved!\n");
+	}
+	else
+	{
+		printf("Cube is NOT solved!\n");
+	}
+}
+
+//Returns true if all faces are in the solved state
+bool Cube::IsCubeSolved()
+{
+	bool result = true;
+
+	for (int i = 0; i < 6; ++i)
+	{
+		result &= faces[i].IsFaceSolved();
+		if (!result) return false;
+	}
+
+	return result;
 }
 
 #pragma endregion
 
+void Cube::Reset()
+{
+	MoveCount = 0;
+	Hours = 0.0;
+	memset(EdgeState, 0, 12);
+	Stage = 0;			//stage of the solve (used for recovering from a restart)
+	QState = 0;			//current quadrant being solved
+	Itteration = 0;		//itteration of the current stage 
+	ProcessStartTime = std::chrono::high_resolution_clock::now(); //Reset process timer
+}
+
 Cube::Cube(int size)
 {
 	IsEven = false;
-	MoveCount = 0;
-	Hours = 0.0;
 	Mid = 0;
 	R1 = 0;
 	RowSize = 0;
-	CurrentFace = F;
 	faces = nullptr;
-	saveenabled = false;
-	stage=0;			//stage of the solve (used for recovering from a restart)
-	qstate=0;			//current quadrant being solved
-	itteration=0;		//itteration of the current stage 
+	SaveEnabled = false;
+	Reset();
 	initalize(size);
-	ProcessStartTime = std::chrono::high_resolution_clock::now(); //Reset process timer
 }
 
 Cube::Cube()
@@ -1227,14 +1678,9 @@ Cube::Cube()
 	Mid = 0;
 	R1 = 0;
 	RowSize = 0;
-	CurrentFace = F;
-	MoveCount = 0;
-	Hours = 0.0;
 	faces = nullptr;
-	saveenabled = false;
-	stage = 0;			//stage of the solve (used for recovering from a restart)
-	qstate = 0;			//current quadrant being solved
-	itteration = 0;		//itteration of the current stage 
+	SaveEnabled = false;
+	Reset();
 }
 
 Cube::~Cube()

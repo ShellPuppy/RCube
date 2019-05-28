@@ -17,31 +17,33 @@ class Cube
 
 	uint R1;		//Rowsize - 1
 	uint Mid;		//Midpoint 
-	bool IsEven;    //Is this an even layered cube
+	bool IsEven;    //Is this an even size cube
 
-	int stage;		//stage of the solve (used for recovering from a restart)
-	int qstate;		//current quadrant being solved
-	uint itteration;//itteration of the current stage 
+	int Stage;		//stage of the solve (used for recovering from a restart)
+	int QState;		//current quadrant being solved
+	uint Itteration;//itteration of the current stage 
+	bool EdgeState[12];	//Current solve state of each egde
 
 	inline void RotateX(uint c, int step);
 	inline void RotateY(uint c, int step);
 	inline void RotateZ(uint c, int step);
 	
 	const static byte cmap[30][6];		//Parameters for center commutators 
-	const static byte edgemap[24];		//Pairs of edge colors
+	const static byte EdgeColorMap[24];	//Pairs of edge colors
 	const static byte corners[8][3];	//Corner color definitions
-
+	const static byte EdgeRotMap[6][4]; //Edge rotation map 
 public:
 
 #pragma region Stats and Info
 
 	std::chrono::high_resolution_clock::time_point ProcessStartTime;
 
-	byte CurrentFace; //The face that is getting solved or worked on
 	uint64 MoveCount; //Total number of moves made ( rotations of 2 or 3 are counted as 1 )
 	double Hours;	  //Total processing hours
 
 	inline double CurrentProcessDuration();
+
+	uint64 PieceCount(); //Number of physical pieces in a cube
 
 #pragma endregion
 
@@ -49,13 +51,15 @@ public:
 	
 	Face *faces;	//array of 6 faces
 
-	bool saveenabled;
+	bool SaveEnabled;
 
 	void initalize(uint rsize);
 
 	inline void Move(byte f, int d, int q);
 
-	void scramble(int);
+	void Reset();
+
+	void Scramble(int);
 
 	void Solve();	
 
@@ -77,21 +81,31 @@ public:
 
 #pragma region Solving Edges
 
-	void SolveEdges();
+	void SolveEdgesOdd();
 
-	void FlipEdge();
+	void SolveEdgesEven();
 
-	void UnFlipEdge();
+	void FlipRightEdge();
 
-	void GetLeftEdgePieces(int row, byte & l1, byte & l2);
+	void UnFlipRightEdge();
 
-	void GetRightEdgePieces(int row, byte & l1, byte & l2);
+	void FlipLeftEdge();
+
+	void UnFlipLeftEdge();
+
+	void MoveCenterEdge(bool flipped);
+
+	void GetLeftEdgeColors(int row, byte & l1, byte & l2);
+
+	void GetRightEdgeColors(int row, byte & l1, byte & l2);
 
 	void FixParity(int row);
 
 	void SetDestinationEdge(int e, bool set);
 	
 	void SetSourceEdge(int edge, bool set);
+
+	void UpdateEdgeRotation(byte faceid, int steps);
 
 #pragma endregion	
 
@@ -113,9 +127,9 @@ public:
 	void LoadCubeState();
 	void PrintStats();
 
+	bool IsCubeSolved();
+
 #pragma endregion
-
-
 
 	Cube(int);
 	Cube();

@@ -115,8 +115,26 @@ void Face::GetCounts(uint *cnt)
 	for (int i = 0; i < 6; ++i) cnt[i] = 0;
 
 	for (uint r = 0; r < RowSize; ++r)
+	{
 		for (uint c = 0; c < RowSize; ++c)
+		{
 			cnt[GetRC(r, c)]++;
+		}
+	}
+}
+
+//Returns true if all pieces on this face match the face id (solved state)
+bool Face::IsFaceSolved()
+{
+	for (uint r = 0; r < RowSize; ++r)
+	{
+		for (uint c = 0; c < RowSize; ++c)
+		{
+			if (GetRC(r, c) != this->id) return false;
+		}
+	}
+
+	return true;
 }
 
 Face::~Face()
