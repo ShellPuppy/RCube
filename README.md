@@ -25,6 +25,7 @@ This algorithm is optimized for very large cubes. However it is terrible for sma
 https://www.nayuki.io/page/tiny-png-output
 
 https://github.com/nayuki/Nayuki-web-published-code
+
 Tiny PNG Output is a small standalone library, available in C and C++, which takes RGB8.8.8 pixels and writes a PNG file.
 
 
