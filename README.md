@@ -21,7 +21,9 @@ The edges are solved by moving every pair of edges to the front face, then swapp
 This algorithm is optimized for very large cubes. However it is terrible for small cubes. There are much much better algorithms for small cubes.
 
 # Image Export
+
 https://www.nayuki.io/page/tiny-png-output
+
 https://github.com/nayuki/Nayuki-web-published-code
 Tiny PNG Output is a small standalone library, available in C and C++, which takes RGB8.8.8 pixels and writes a PNG file.
 
