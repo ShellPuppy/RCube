@@ -17,9 +17,6 @@ The corners are solved using a basic brute force method of moving the corner int
 
 The edges are solved by moving every pair of edges to the front face, then swapping desired pieces from the left edge to the right edge. A lot of functions where needed to fix or prevent parity issues.
 
-# Efficiency 
-This algorithm is optimized for very large cubes. However it is terrible for small cubes. There are much much better algorithms for small cubes.
-
 # Image Export
 
 https://www.nayuki.io/page/tiny-png-output
@@ -28,6 +25,8 @@ https://github.com/nayuki/Nayuki-web-published-code
 
 Tiny PNG Output is a small standalone library, available in C and C++, which takes RGB8.8.8 pixels and writes a PNG file.
 
+# Efficiency 
+This algorithm is optimized for very large cubes. However it is terrible for small cubes. There are much much better algorithms for small cubes.
 
-
+![](RCube/Images/MovesPerPiece.PNG)
 
