@@ -105,7 +105,11 @@ void Cube::initalize(uint rsize)
 		faces[i].Initialize(i, RowSize, MemSize);
 	}
 }
-
+void Cube::cleanup()
+{
+	if (faces != nullptr) delete[] faces;
+	Reset();
+}
 void Cube::Scramble(int seed)
 {
 	uint rnd;
@@ -1563,7 +1567,7 @@ void Cube::SaveCubeState()
 
 	printf("Total duration = %.3f hours\n", Hours);
 
-	std::ofstream out("state//cubestate.bin", std::ios::out | std::ios::binary);
+	std::ofstream out("cubestate.bin", std::ios::out | std::ios::binary);
 	out.write((char*)this, sizeof(Cube));
 	out.flush();
 	out.close();
@@ -1580,7 +1584,7 @@ void Cube::LoadCubeState()
 {
 	printf("Loading cube from file\n");
 
-	std::ifstream in("state//cubestate.bin", std::ios::out | std::ios::binary);
+	std::ifstream in("cubestate.bin", std::ios::out | std::ios::binary);
 	in.read((char*)this, sizeof(Cube));
 	in.close();
 

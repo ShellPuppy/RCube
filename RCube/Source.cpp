@@ -1,6 +1,7 @@
 #include "Cube.h"
 #include "CubeViewer.h"
-#include <direct.h>
+#include <fstream>
+
 
 int main()
 {
@@ -27,10 +28,6 @@ int main()
 	}
 
 	printf("solving\n");
-
-	tmp = mkdir("stats");
-	tmp = mkdir("state");
-
 	cube.Solve();
 
 	cube.PrintStats();

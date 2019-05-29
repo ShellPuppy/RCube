@@ -55,6 +55,8 @@ public:
 
 	void initalize(uint rsize);
 
+	void cleanup();
+
 	inline void Move(byte f, int d, int q);
 
 	void Reset();

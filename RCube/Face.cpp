@@ -73,7 +73,7 @@ void Face::SaveFaceState()
 	printf("Saving face %i\n", id);
 
 	//GetCounts(PieceCount);
-	std::string name = "state//face" + std::to_string(id) + ".bin";
+	std::string name = "face" + std::to_string(id) + ".bin";
 	std::ofstream out(name, std::ios::out | std::ios::binary);
 	out.write((char*)this, sizeof(Face));
 	out.write((char*)data, DataSize);
@@ -84,7 +84,7 @@ void Face::SaveFaceState()
 void Face::LoadFaceState(byte faceid)
 {
 	printf("Loading face %i\n", faceid);
-	std::string name = "state//face" + std::to_string(faceid) + ".bin";
+	std::string name = "face" + std::to_string(faceid) + ".bin";
 	std::ifstream in(name, std::ios::in | std::ios::binary);
 	in.read((char*)this, sizeof(Face));
 	data = new byte[DataSize];
@@ -140,6 +140,6 @@ bool Face::IsFaceSolved()
 Face::~Face()
 {
 	//Cleanup
-	if (data != nullptr) delete data;
+	if (data != nullptr) delete[] data;
 
 }
