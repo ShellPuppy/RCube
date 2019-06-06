@@ -5,6 +5,8 @@ Rubik's Cube solver for very large cubes.
 Solves any cube of any size from 1 to 65536. The code can be easily modified to handle even larger cubes. However the primary limitation is the amount of memory on a system and the length of time it takes to solve.
 Solve time grows N^3 which means it takes 8 times longer to solve a cube that is 2x larger in each dimension. The number of pieces grows N^2 and the amount of work to rotate a slice is N, thus N^3;
 
+Image of the front face of a 32768 cube: https://www.easyzoom.com/imageaccess/e5764d0e8821431388d02d1c2d481c38
+
 # Solve Method
 Solves the centers then corners then edges
 
