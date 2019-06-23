@@ -26,13 +26,13 @@ const byte Cube::EdgeColorMap[24] =
 const byte Cube::cmap[30][6] =
 {
 	{0,1,4,5,3,3},
-	{0,2,0,0,0,0},	//TODO not filled out (not used)
+	{0,2,3,1,0,2},
 	{0,3,5,4,1,1},
 	{0,4,3,1,0,0},
 	{0,5,1,3,2,2},
 	{1,0,5,4,1,1},
 	{1,2,4,5,3,3},
-	{1,3,0,0,0,0},	//TODO not filled out (not used)
+	{1,3,5,4,1,1},
 	{1,4,0,2,0,1},
 	{1,5,2,0,2,1},
 	{2,0,1,3,0,2},
@@ -54,7 +54,7 @@ const byte Cube::cmap[30][6] =
 	{5,1,0,2,3,0},
 	{5,2,1,3,2,0},
 	{5,3,2,0,1,0},
-	{5,4,0,0,0,0}	//TODO not filled out (not used)
+	{5,4,2,0,1,3}
 };
 
 //Corner color definitions
