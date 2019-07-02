@@ -25,6 +25,11 @@ The edges are solved by moving every pair of edges to the front face, then swapp
 Face rotations are essentially free.  Instead of moving all the pieces on a given face (N^2 pieces) to perform a rotation, the solver simply changes the coordinate system that is uses to read/write to the face.  This saves an enormous amount of data swapping. 
 
 ```c++
+//Virtually rotate this face by q * 90 degrees 
+inline void Face::RotatefaceCW(const int q)
+{
+	orientation = (orientation + q) & 3;
+}
 //Gets the value of this face at coordinates r = row, c = column
 inline const byte Face::GetRC(const uint r, const uint c) const
 {
