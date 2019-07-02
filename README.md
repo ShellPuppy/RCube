@@ -39,7 +39,7 @@ inline const byte Face::GetRC(const uint r, const uint c) const
 	case 1:
 		return data[(c << BS) + (R1 - r)];
 	case 2:
-		return data[(((R1 - r) << BS) + (R1 - c))];
+		return data[((R1 - r) << BS) + (R1 - c)];
 	case 3:
 		return data[((R1 - c) << BS) + r];
 	default:
