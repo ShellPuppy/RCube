@@ -81,7 +81,7 @@ const byte Cube::EdgeRotMap[6][4] =
 	{0,7,8,4}	//D
 };
 
-void Cube::initalize(uint rsize)
+void Cube::Initalize(uint rsize)
 {
 	//Size of the cube
 	RowSize = rsize;
@@ -105,7 +105,7 @@ void Cube::initalize(uint rsize)
 		faces[i].Initialize(i, RowSize, MemSize);
 	}
 }
-void Cube::cleanup()
+void Cube::Cleanup()
 {
 	if (faces != nullptr) delete[] faces;
 	Reset();
@@ -1672,7 +1672,7 @@ Cube::Cube(int size)
 	faces = nullptr;
 	SaveEnabled = false;
 	Reset();
-	initalize(size);
+	Initalize(size);
 }
 
 Cube::Cube()

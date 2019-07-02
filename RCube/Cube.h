@@ -7,22 +7,21 @@ typedef unsigned long long uint64;
 
 class Cube
 {
-	//Face numbers
-	const byte F = 0x00;
-	const byte R = 0x01;
-	const byte B = 0x02;
-	const byte L = 0x03;
-	const byte U = 0x04;
-	const byte D = 0x05;
+	const byte F = 0x00;	//Front
+	const byte R = 0x01;	//Right
+	const byte B = 0x02;	//Back
+	const byte L = 0x03;	//Left
+	const byte U = 0x04;	//Up
+	const byte D = 0x05;	//Down
 
 	uint R1;		//Rowsize - 1
 	uint Mid;		//Midpoint 
-	bool IsEven;    //Is this an even size cube
+	bool IsEven;	//Is this an even layered cube
 
 	int Stage;		//stage of the solve (used for recovering from a restart)
 	int QState;		//current quadrant being solved
 	uint Itteration;//itteration of the current stage 
-	bool EdgeState[12];	//Current solve state of each egde
+	bool EdgeState[12];//Current solve state of each egde
 
 	inline void RotateX(uint c, int step);
 	inline void RotateY(uint c, int step);
@@ -31,19 +30,19 @@ class Cube
 	const static byte cmap[30][6];		//Parameters for center commutators 
 	const static byte EdgeColorMap[24];	//Pairs of edge colors
 	const static byte corners[8][3];	//Corner color definitions
-	const static byte EdgeRotMap[6][4]; //Edge rotation map 
+	const static byte EdgeRotMap[6][4];	//Edge rotation map 
 public:
 
 #pragma region Stats and Info
 
 	std::chrono::high_resolution_clock::time_point ProcessStartTime;
 
-	uint64 MoveCount; //Total number of moves made ( rotations of 2 or 3 are counted as 1 )
-	double Hours;	  //Total processing hours
+	uint64 MoveCount;	//Total number of moves made ( rotations of 2 or 3 are counted as 1 )
+	double Hours;		//Total processing hours
 
 	inline double CurrentProcessDuration();
 
-	uint64 PieceCount(); //Number of physical pieces in a cube
+	uint64 PieceCount();	//Number of physical pieces in a cube
 
 #pragma endregion
 
@@ -51,11 +50,11 @@ public:
 	
 	Face *faces;	//array of 6 faces
 
-	bool SaveEnabled;
+	bool SaveEnabled;	//allow saving the cube state
 
-	void initalize(uint rsize);
+	void Initalize(uint rsize);
 
-	void cleanup();
+	void Cleanup();
 
 	inline void Move(byte f, int d, int q);
 
@@ -135,7 +134,6 @@ public:
 
 	Cube(int);
 	Cube();
-
 	~Cube();
 };
 
@@ -166,8 +164,6 @@ inline void Cube::Move(const byte face, const  int depth, const int q)
 		RotateY(depth, q);
 		return;
 	}
-
-
 }
 
 //Rotates a slice in the Y-Z plane (Left and Right faces) by (1,2,3,-1,-2,-3)
@@ -177,12 +173,6 @@ inline void Cube::RotateX(uint index, int step)
 	if (index == R1) faces[1].RotatefaceCW(step);
 
 	byte buffer[4];
-
-	int a = (0 - (step & 3)) & 3;
-	int b = (1 - (step & 3)) & 3;
-	int c = (2 - (step & 3)) & 3;
-	int d = (3 - (step & 3)) & 3;
-
 	for (uint i = 0; i < RowSize; ++i)
 	{
 		buffer[0] = faces[0].GetRC(i, index);
@@ -190,12 +180,11 @@ inline void Cube::RotateX(uint index, int step)
 		buffer[2] = faces[2].GetRC(R1 - i, R1 - index);
 		buffer[3] = faces[5].GetRC(i, index);
 
-		faces[0].SetRC(i, index,			buffer[a]);
-		faces[4].SetRC(i, index,			buffer[b]);
-		faces[2].SetRC(R1 - i, R1 - index,	buffer[c]);
-		faces[5].SetRC(i, index,			buffer[d]);
+		faces[0].SetRC(i, index,			buffer[(0 - (step & 3)) & 3]);
+		faces[4].SetRC(i, index,			buffer[(1 - (step & 3)) & 3]);
+		faces[2].SetRC(R1 - i, R1 - index,	buffer[(2 - (step & 3)) & 3]);
+		faces[5].SetRC(i, index,			buffer[(3 - (step & 3)) & 3]);
 	}
-
 }
 
 //Rotates a slice in the X-Y plane  (Top and Bottom faces) by (1,2,3,-1,-2,-3)
@@ -204,7 +193,6 @@ inline void Cube::RotateY(uint index, int step)
 	if (index == 0)  faces[5].RotatefaceCW(step);
 	if (index == R1) faces[4].RotatefaceCW(-step);
 
-	//Fr Rr Br Lr
 	byte buffer[4];
 	for (uint i = 0; i < RowSize; ++i)
 	{
@@ -226,7 +214,6 @@ inline void Cube::RotateZ(uint index, int step)
 	if (index == 0)  faces[0].RotatefaceCW(-step);
 	if (index == R1) faces[2].RotatefaceCW(step);
 
-	//Rc Ur Lci Dri
 	int b1 = (0 - (step & 3)) & 3;
 	byte buffer[4];
 

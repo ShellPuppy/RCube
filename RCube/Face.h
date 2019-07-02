@@ -8,12 +8,12 @@ typedef unsigned long long uint64;
 
 class Face
 {
-	
+
 	uint R1;				// RowSize - 1
 	uint MemRowSize;		// Memory row length (must be a power of 2) 32,64,128...65536
 	uint BS;				// bit shift = log2(memsize)
 	uint64 DataSize;		// size of data array in bytes = MemRowSize * MemRowSize
-	byte *data;				// face data
+	byte* data;				// face data
 	int orientation;		// Virtual orientation of this face [0,1,2,3] - 90 degree clockwise rotations
 	uint PieceCount[6];		// Keep track of the number of each piece on this face (used for validating the integrity of the cube)
 
@@ -41,8 +41,8 @@ public:
 	void Paint(byte color);
 
 	uint Count(byte color);
-	
-	void GetCounts(uint *);
+
+	void GetCounts(uint*);
 
 	bool IsFaceSolved();
 
@@ -52,7 +52,7 @@ public:
 };
 
 //Virtually rotates this face by q * 90 degrees (this does not affect other cube faces!)
-inline void Face::RotatefaceCW(int q)
+inline void Face::RotatefaceCW(const int q)
 {
 	orientation = (orientation + q) & 3;
 }
@@ -60,16 +60,16 @@ inline void Face::RotatefaceCW(int q)
 //Gets the value of this face at coordinates r = row, c = column
 inline const byte Face::GetRC(const uint r, const uint c) const
 {
-	switch (orientation)
+	switch (orientation) 
 	{
 	case 0:
 		return data[(r << BS) + c];
 	case 1:
-		return data[(c << BS) + (R1 - r) ];
+		return data[(c << BS) + (R1 - r)];
 	case 2:
-		return data[(((R1 - r) << BS) + (R1 - c) )];
+		return data[((R1 - r) << BS) + (R1 - c)];
 	case 3:
-		return data[((R1 - c) << BS) + r ];
+		return data[((R1 - c) << BS) + r];
 	default:
 		return 0;
 	}
@@ -87,7 +87,7 @@ inline const byte Face::GetRCQ(const uint r, const uint c, int q) const
 	case 1:
 		return data[(c << BS) + (R1 - r)];
 	case 2:
-		return data[(((R1 - r) << BS) + (R1 - c))];
+		return data[((R1 - r) << BS) + (R1 - c)];
 	case 3:
 		return data[((R1 - c) << BS) + r];
 	}
@@ -106,13 +106,13 @@ inline void Face::SetRC(const uint r, const uint c, const byte v)
 		return;
 	case 1:
 		data[(c << BS) + (R1 - r)] = v;
-		 return;
+		return;
 	case 2:
-		data[(((R1 - r) << BS) + (R1 - c))] = v;
-		 return;
+		data[((R1 - r) << BS) + (R1 - c)] = v;
+		return;
 	case 3:
 		data[((R1 - c) << BS) + r] = v;
-		 return;
+		return;
 	}
 }
 
