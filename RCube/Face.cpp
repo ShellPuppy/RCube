@@ -7,6 +7,7 @@
 #include <math.h>
 #include <iostream>
 #include <string>
+#include <cstring>
 
 Face::Face()
 {

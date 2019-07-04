@@ -1,5 +1,6 @@
 #include <fstream>
 #include "CubeViewer.h"
+#include <math.h>
 
 //Color Palette 
 const uint8_t CubeViewer::palette[6][3] =

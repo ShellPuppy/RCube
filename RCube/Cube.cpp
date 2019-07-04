@@ -4,6 +4,8 @@
 #include <fstream>
 #include <cstdio>
 #include <chrono>
+#include <math.h>
+#include <cstring>
 
 //Pairs of edge colors
 const byte Cube::EdgeColorMap[24] =
