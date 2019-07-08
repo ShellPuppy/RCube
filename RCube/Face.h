@@ -8,6 +8,7 @@ typedef unsigned long long uint64;
 
 class Face
 {
+	friend class Cube;
 
 	uint R1;				// RowSize - 1
 	uint MemRowSize;		// Memory row length (must be a power of 2) 32,64,128...65536
@@ -29,6 +30,10 @@ public:
 	inline const byte GetRCQ(const uint r, const uint c, int q) const;
 
 	inline void SetRC(const uint r, const uint c, const byte v);
+
+	const int GetDelta(const uint d) const;
+
+	const int GetPos(const uint r, const uint c) const;
 
 	void Initialize(byte index, uint rsize, uint msize);
 
@@ -116,5 +121,37 @@ inline void Face::SetRC(const uint r, const uint c, const byte v)
 	}
 }
 
+inline const int Face::GetDelta(const uint d) const
+{
+	switch (d)
+	{
+	case 0: //Right
+		return GetPos(0, 1) - GetPos(0, 0);
+	case 1: //Down
+		return GetPos(0, 0) - GetPos(1, 0);
+	case 2: //left
+		return GetPos(0, 0) - GetPos(0, 1);
+	case 3:
+		return GetPos(1, 0) - GetPos(0, 0);
+	default:
+		return 0;
+	}
 
+}
 
+inline const int Face::GetPos(const uint r, const uint c) const
+{
+	switch (orientation)
+	{
+	case 0:
+		return (r << BS) + c;
+	case 1:
+		return (c << BS) + (R1 - r);
+	case 2:
+		return (((R1 - r) << BS) + (R1 - c));
+	case 3:
+		return ((R1 - c) << BS) + r;
+	default:
+		return 0;
+	}
+}

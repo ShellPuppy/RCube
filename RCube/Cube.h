@@ -146,13 +146,13 @@ inline void Cube::Move(const byte face, const  int depth, const int q)
 	switch (face)
 	{
 	case 0: //F
-		RotateZ(depth, -q);
+		RotateZ(depth, q);
 		return;
 	case 1: //R
 		RotateX(R1 - depth, q);
 		return;
 	case 2: //B
-		RotateZ(R1 - depth, q);
+		RotateZ(R1 - depth, -q);
 		return;
 	case 3: //L
 		RotateX(depth, -q);
@@ -167,69 +167,173 @@ inline void Cube::Move(const byte face, const  int depth, const int q)
 }
 
 //Rotates a slice in the Y-Z plane (Left and Right faces) by (1,2,3,-1,-2,-3)
-inline void Cube::RotateX(uint index, int step)
+inline void Cube::RotateX(const uint index, const int step)
 {
 	if (index == 0)  faces[3].RotatefaceCW(-step);
 	if (index == R1) faces[1].RotatefaceCW(step);
 
-	byte buffer[4];
-	for (uint i = 0; i < RowSize; ++i)
-	{
-		buffer[0] = faces[0].GetRC(i, index);
-		buffer[1] = faces[4].GetRC(i, index);
-		buffer[2] = faces[2].GetRC(R1 - i, R1 - index);
-		buffer[3] = faces[5].GetRC(i, index);
+	byte b[4];
+	byte* f0, * f4, * f2, * f5;
+	int p0, p4, p2, p5;
+	int d0, d4, d2, d5;
+	int i0, i1, i2, i3;
 
-		faces[0].SetRC(i, index,			buffer[(0 - (step & 3)) & 3]);
-		faces[4].SetRC(i, index,			buffer[(1 - (step & 3)) & 3]);
-		faces[2].SetRC(R1 - i, R1 - index,	buffer[(2 - (step & 3)) & 3]);
-		faces[5].SetRC(i, index,			buffer[(3 - (step & 3)) & 3]);
+	f0 = faces[0].data;
+	f4 = faces[4].data;
+	f2 = faces[2].data;
+	f5 = faces[5].data;
+
+	p0 = faces[0].GetPos(0, index);
+	p4 = faces[4].GetPos(0, index);
+	p2 = faces[2].GetPos(R1, R1 - index);
+	p5 = faces[5].GetPos(0, index);
+
+	d0 = faces[0].GetDelta(3);
+	d4 = faces[4].GetDelta(3);
+	d2 = faces[2].GetDelta(1);
+	d5 = faces[5].GetDelta(3);
+
+	i0 = (0 - (step & 3)) & 3;
+	i1 = (1 - (step & 3)) & 3;
+	i2 = (2 - (step & 3)) & 3;
+	i3 = (3 - (step & 3)) & 3;
+
+	uint i = 0;
+
+	while (i < RowSize)
+	{
+		b[0] = f0[p0];
+		b[1] = f4[p4];
+		b[2] = f2[p2];
+		b[3] = f5[p5];
+
+		f0[p0] = b[i0];
+		f4[p4] = b[i1];
+		f2[p2] = b[i2];
+		f5[p5] = b[i3];
+
+		p0 += d0;
+		p4 += d4;
+		p2 += d2;
+		p5 += d5;
+
+		i++;
 	}
+
 }
 
 //Rotates a slice in the X-Y plane  (Top and Bottom faces) by (1,2,3,-1,-2,-3)
-inline void Cube::RotateY(uint index, int step)
+inline void Cube::RotateY(const uint index, const int step)
 {
 	if (index == 0)  faces[5].RotatefaceCW(step);
 	if (index == R1) faces[4].RotatefaceCW(-step);
 
-	byte buffer[4];
-	for (uint i = 0; i < RowSize; ++i)
-	{
-		buffer[0] = faces[0].GetRC(index, i);
-		buffer[1] = faces[1].GetRC(index, i);
-		buffer[2] = faces[2].GetRC(index, i);
-		buffer[3] = faces[3].GetRC(index, i);
+	byte b[4];
+	byte* f0, * f1, * f2, * f3;
+	int p0, p1, p2, p3;
+	int d0, d1, d2, d3;
+	int i0, i1, i2, i3;
 
-		faces[0].SetRC(index, i, buffer[(0 - (step & 3)) & 3]);
-		faces[1].SetRC(index, i, buffer[(1 - (step & 3)) & 3]);
-		faces[2].SetRC(index, i, buffer[(2 - (step & 3)) & 3]);
-		faces[3].SetRC(index, i, buffer[(3 - (step & 3)) & 3]);
+	f0 = faces[0].data;
+	f1 = faces[1].data;
+	f2 = faces[2].data;
+	f3 = faces[3].data;
+
+	p0 = faces[0].GetPos(index, 0);
+	p1 = faces[1].GetPos(index, 0);
+	p2 = faces[2].GetPos(index, 0);
+	p3 = faces[3].GetPos(index, 0);
+
+	d0 = faces[0].GetDelta(0);
+	d1 = faces[1].GetDelta(0);
+	d2 = faces[2].GetDelta(0);
+	d3 = faces[3].GetDelta(0);
+
+	i0 = (0 - (step & 3)) & 3;
+	i1 = (1 - (step & 3)) & 3;
+	i2 = (2 - (step & 3)) & 3;
+	i3 = (3 - (step & 3)) & 3;
+
+	uint i = 0;
+
+	while (i < RowSize)
+	{
+		b[0] = f0[p0];
+		b[1] = f1[p1];
+		b[2] = f2[p2];
+		b[3] = f3[p3];
+
+		f0[p0] = b[i0];
+		f1[p1] = b[i1];
+		f2[p2] = b[i2];
+		f3[p3] = b[i3];
+
+		p0 += d0;
+		p1 += d1;
+		p2 += d2;
+		p3 += d3;
+
+		i++;
 	}
+
 }
 
 //Rotates a slice in the X-Z plane (Front and Back) by (1,2,3,-1,-2,-3)
-inline void Cube::RotateZ(uint index, int step)
+inline void Cube::RotateZ(const uint index, const int step)
 {
-	if (index == 0)  faces[0].RotatefaceCW(-step);
-	if (index == R1) faces[2].RotatefaceCW(step);
+	if (index == 0)  faces[0].RotatefaceCW(step);
+	if (index == R1) faces[2].RotatefaceCW(-step);
 
-	int b1 = (0 - (step & 3)) & 3;
-	byte buffer[4];
+	byte b[4];
+	byte* f1, * f5, * f3, * f4;
+	int p1, p5, p3, p4;
+	int d1, d5, d3, d4;
+	int i0, i1, i2, i3;
 
-	for (uint i = 0; i < RowSize; ++i)
+	f1 = faces[1].data;
+	f5 = faces[5].data;
+	f3 = faces[3].data;
+	f4 = faces[4].data;
+
+	p1 = faces[1].GetPos(0, index);
+	p5 = faces[5].GetPos(R1 - index, 0);
+	p3 = faces[3].GetPos(R1, R1 - index);
+	p4 = faces[4].GetPos(index, R1);
+
+	d1 = faces[1].GetDelta(3);
+	d5 = faces[5].GetDelta(0);
+	d3 = faces[3].GetDelta(1);
+	d4 = faces[4].GetDelta(2);
+
+	i0 = (0 - (step & 3)) & 3;
+	i1 = (1 - (step & 3)) & 3;
+	i2 = (2 - (step & 3)) & 3;
+	i3 = (3 - (step & 3)) & 3;
+
+	uint i = 0;
+
+	while (i < RowSize)
 	{
-		buffer[0] = faces[1].GetRC(i, index);
-		buffer[1] = faces[4].GetRC(index, R1 - i);
-		buffer[2] = faces[3].GetRC(R1 - i, R1 - index);
-		buffer[3] = faces[5].GetRC(R1 - index, i);
+		b[0] = f1[p1];
+		b[1] = f5[p5];
+		b[2] = f3[p3];
+		b[3] = f4[p4];
 
-		faces[1].SetRC(i, index, buffer[b1]);
-		faces[4].SetRC(index, R1 - i, buffer[(b1 + 1) & 3]);
-		faces[3].SetRC(R1 - i, R1 - index, buffer[(b1 + 2) & 3]);
-		faces[5].SetRC(R1 - index, i, buffer[(b1 + 3) & 3]);
+		f1[p1] = b[i0];
+		f5[p5] = b[i1];
+		f3[p3] = b[i2];
+		f4[p4] = b[i3];
+
+		p1 += d1;
+		p5 += d5;
+		p3 += d3;
+		p4 += d4;
+
+		i++;
 	}
+
 }
+
 
 //Returns the total number of hours since solve was started or restarted
 inline double Cube::CurrentProcessDuration()
