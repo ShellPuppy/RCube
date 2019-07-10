@@ -22,8 +22,8 @@ void CubeViewer::ExportFaceDiagram(Face& face, std::string FileName, int ImageWi
 
 	uint8_t* pixels = new uint8_t[datacount];
 
-	//Initialize all pixels to black
-	//memset(pixels, 0x00, datacount);
+	//Disable gridlines if the image is too small
+	if ((uint)ImageWidth <= face.RowSize * 2) IncludeGridlines = false;
 
 	//Compute scale between cube size and image size
 	double wp = ((double)face.RowSize) / ((double)ImageWidth);

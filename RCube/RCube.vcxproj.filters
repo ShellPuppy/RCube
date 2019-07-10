@@ -28,7 +28,7 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CubeViewer.cpp">
-      <Filter>Header Files</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -38,10 +38,10 @@
     <ClInclude Include="Face.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CubeViewer.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="TinyPngOut.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CubeViewer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

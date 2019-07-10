@@ -121,6 +121,7 @@ inline void Face::SetRC(const uint r, const uint c, const byte v)
 	}
 }
 
+//Returns the offset needed to traverse the data array in a given direction. 
 inline const int Face::GetDelta(const uint d) const
 {
 	switch (d)
@@ -131,7 +132,7 @@ inline const int Face::GetDelta(const uint d) const
 		return GetPos(0, 0) - GetPos(1, 0);
 	case 2: //left
 		return GetPos(0, 0) - GetPos(0, 1);
-	case 3:
+	case 3: // Up
 		return GetPos(1, 0) - GetPos(0, 0);
 	default:
 		return 0;
@@ -139,6 +140,7 @@ inline const int Face::GetDelta(const uint d) const
 
 }
 
+//Returns the array index of data that corrisponds to row (r) and column (c)
 inline const int Face::GetPos(const uint r, const uint c) const
 {
 	switch (orientation)

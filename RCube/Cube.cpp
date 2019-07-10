@@ -178,7 +178,7 @@ void Cube::Solve()
 	AlignTrueCenters();
 
 	//Stage 0 through 15 (solve centers)
-	if (Stage < 15)
+	if (Stage <= 15)
 	{
 		SolveCenters();
 	}
@@ -200,11 +200,13 @@ void Cube::Solve()
 		else
 		{
 			SolveEdgesOdd();
-			SolveEdgesOdd(); 
+			SolveEdgesOdd();
 		}
 	}
 
 	//Cube is solved
+	//Keep track of total hours of processing
+	Hours += CurrentProcessDuration();
 }
 
 #pragma region Centers
@@ -394,7 +396,7 @@ bool Cube::IsOpposite(byte src, byte dst)
 //Push center pieces of any color from one face to another using commutators 
 void Cube::PushCenterPieces(byte src, byte dst, byte color)
 {
-	//Lookup table to find translation parameters
+	//Lookup table to find commuator parameters
 	int map = FindCommutatorMap(src, dst);
 
 	byte srcl = cmap[map][2];			//The face thats 'left' of the src face (in the direction of the destination)
@@ -404,7 +406,7 @@ void Cube::PushCenterPieces(byte src, byte dst, byte color)
 
 	if (IsOpposite(src, dst)) d = 2;
 
-	uint* mstack = new uint[Mid];		//Temporary array to keep track of rows that were used
+	uint* mstack = new uint[Mid];		//Temporary array to keep track of columns that are being moved 
 
 	uint stkptr = 0;
 	uint pieces = 0;
@@ -423,8 +425,8 @@ void Cube::PushCenterPieces(byte src, byte dst, byte color)
 
 			if (SaveEnabled)
 			{
-				//Save 
-				if (CurrentProcessDuration() >= 3.0)
+				//Save cube state every 1.0 hours
+				if (CurrentProcessDuration() >= 1.0)
 				{
 					SaveCubeState();
 				}
@@ -476,6 +478,7 @@ void Cube::PushCenterPieces(byte src, byte dst, byte color)
 		//reset the start point
 		start = Mid;
 
+		//Rotate the src face to prepare for the next quadrant
 		Move(src, 0, 1);
 	}
 
@@ -688,7 +691,7 @@ void Cube::SolveEdgesOdd()
 						//Also a piece exists on the right?
 						if (((r0 == c0 && r1 == c1) || (r0 == c1 && r1 == c0)))
 						{
-							if(r != Mid) mstack[mptr++] = r;
+							if (r != Mid) mstack[mptr++] = r;
 						}
 					}
 				}
@@ -767,7 +770,7 @@ void Cube::SolveEdgesEven()
 		for (int se = 0; se < 12; ++se)
 		{
 			//Skip this edge if its already been solved 
-			if (EdgeState[se]) continue; 
+			if (EdgeState[se]) continue;
 
 			//Move edge so its on the left side of the front face
 			SetSourceEdge(se, true);
@@ -886,9 +889,9 @@ void Cube::SolveEdgesEven()
 
 		//Move edge back to the correct face and orientation 
 		SetDestinationEdge(de, false);
-		
+
 		//this edge is now solved
-		EdgeState[de] = true; 
+		EdgeState[de] = true;
 	}
 
 	delete[] mstack;
@@ -897,38 +900,38 @@ void Cube::SolveEdgesEven()
 //Flips the F-R edge
 void Cube::FlipRightEdge()
 {
-	Move(R, 0, 1); 
+	Move(R, 0, 1);
 	UpdateEdgeRotation(R, 1);
-	Move(U, 0, 1); 
+	Move(U, 0, 1);
 	UpdateEdgeRotation(U, 1);
-	Move(R, 0, -1); 
+	Move(R, 0, -1);
 	UpdateEdgeRotation(R, -1);
-	Move(F, 0, 1); 
+	Move(F, 0, 1);
 	UpdateEdgeRotation(F, 1);
-	Move(R, 0, -1); 
+	Move(R, 0, -1);
 	UpdateEdgeRotation(R, -1);
-	Move(F, 0, -1); 
+	Move(F, 0, -1);
 	UpdateEdgeRotation(F, -1);
-	Move(R, 0, 1); 
+	Move(R, 0, 1);
 	UpdateEdgeRotation(R, 1);
 }
 
 //Un-Flips the F-R edge 
 void Cube::UnFlipRightEdge()
 {
-	Move(R, 0, -1); 
+	Move(R, 0, -1);
 	UpdateEdgeRotation(R, -1);
-	Move(F, 0, 1); 
+	Move(F, 0, 1);
 	UpdateEdgeRotation(F, 1);
-	Move(R, 0, 1); 
+	Move(R, 0, 1);
 	UpdateEdgeRotation(R, 1);
-	Move(F, 0, -1); 
+	Move(F, 0, -1);
 	UpdateEdgeRotation(F, -1);
-	Move(R, 0, 1); 
+	Move(R, 0, 1);
 	UpdateEdgeRotation(R, 1);
-	Move(U, 0, -1); 
+	Move(U, 0, -1);
 	UpdateEdgeRotation(U, -1);
-	Move(R, 0, -1); 
+	Move(R, 0, -1);
 	UpdateEdgeRotation(R, -1);
 }
 
@@ -1612,14 +1615,33 @@ uint64 Cube::PieceCount()
 	return result;
 }
 
-
 void Cube::PrintStats()
 {
+	printf("\n");
 	printf("Cube Size : %i\n", RowSize);
+	printf("Total Tiles : %llu\n", ((uint64)RowSize * (uint64)RowSize * 6));
 	printf("Total Pieces : %llu\n", PieceCount());
 	printf("Total Moves : %llu\n", MoveCount);
 	printf("Moves per piece : %f\n", (double)MoveCount / (double)PieceCount());
-	printf("Total Hours : %.7f\n", Hours);
+
+	if (Hours < 1.0)
+	{
+		double Minutes = Hours * 60.0;
+		if (Minutes < 2.0)
+		{
+			double Seconds = Minutes * 60.0;
+			printf("Total Seconds : %.7f\n", Seconds);
+		}
+		else
+		{
+			printf("Total Minutes : %.7f\n", Minutes);
+		}
+	}
+	else
+	{
+		printf("Total Hours : %.7f\n", Hours);
+	}
+
 
 	if (SaveEnabled)
 	{
@@ -1636,6 +1658,7 @@ void Cube::PrintStats()
 	{
 		printf("Cube is NOT solved!\n");
 	}
+	printf("\n");
 }
 
 //Returns true if all faces are in the solved state
