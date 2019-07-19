@@ -17,7 +17,7 @@ Solves the centers then corners then edges
 ### Centers
 The centers are solved in 15 stages where each stage moves all the pieces of a certain color from one face to the desired face. For example: a stage moves all green pieces on the white face to the green face. Repeat this for all colors and faces.
 
-The solver uses the commutator described [here](https://www.jaapsch.net/puzzles/cube7.htm) which can commute center pieces from one quadrant of a face to a quandrant on another face. A very important property of this commutator is that can be modified move many pieces in single row at the same time. For very large cubes this means it can move hundreds if not thousands of pieces in a single operation. The average number of moves k = (2 * P + 5) / P where P is the number of pieces that can be moved per operation. K quickly approaches 2 as the cube size increases.
+The solver uses the commutator described [here](https://www.jaapsch.net/puzzles/cube7.htm) which can commute center pieces from one quadrant of a face to a quandrant on another face. A very important property of this commutator is that can be modified to move many pieces in single row at the same time. For very large cubes this means it can move hundreds if not thousands of pieces in a single operation. The average number of moves k = (2 * P + 5) / P where P is the number of pieces that can be moved per operation. K quickly approaches 2 as the cube size increases.
 
 ### Corners
 The corners are solved using a basic brute force method of moving the corner into place and then rotating until the faces were oriented correctly. Will Smith can explain: https://www.youtube.com/watch?v=WBzkDrC9vQs
