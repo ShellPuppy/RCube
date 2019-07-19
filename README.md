@@ -7,6 +7,8 @@ Solve time grows N^3 which means it takes 8 times longer to solve a cube that is
 
 A 1024 layered cube can be solved in about 40 seconds.
 
+[Youtube: Solving 32768 Layers](https://www.youtube.com/watch?v=xOJtLb_rPVg)
+
 [Image of the front face of a 32768 cube](https://www.easyzoom.com/image/146053)
 
 ## Solve Method
