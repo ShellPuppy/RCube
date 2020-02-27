@@ -406,16 +406,16 @@ void Cube::PushCenterPieces(byte src, byte dst, byte color)
 
 	if (IsOpposite(src, dst)) d = 2;
 
-	uint* mstack = new uint[Mid];		//Temporary array to keep track of columns that are being moved 
+	uint* mstack = new uint[R1];		//Temporary array to keep track of columns that are being moved
 
 	uint stkptr = 0;
 	uint pieces = 0;
-	uint start = Mid;
+	uint start = 1;
 
 	//If starting from a save state then set the start point
 	if (Itteration > 0) start = Itteration;
 
-	for (int quadrant = QState; quadrant < 4; ++quadrant)
+	for (int quadrant = QState; quadrant < 2; ++quadrant)
 	{
 		this->QState = quadrant;
 
@@ -436,8 +436,11 @@ void Cube::PushCenterPieces(byte src, byte dst, byte color)
 			{
 				pieces = 0;
 				stkptr = 0;
-				for (uint c = 1; c < Mid; ++c)
+				for (uint c = 1; c < R1; ++c)
 				{
+					//Avoid diagonal piece collisions
+					if (c == r) continue;
+
 					if (faces[src].GetRCQ(r, c, sq) == color)
 					{
 						pieces++;
@@ -476,7 +479,7 @@ void Cube::PushCenterPieces(byte src, byte dst, byte color)
 		}
 
 		//reset the start point
-		start = Mid;
+		start = 1;
 
 		//Rotate the src face to prepare for the next quadrant
 		Move(src, 0, 1);
