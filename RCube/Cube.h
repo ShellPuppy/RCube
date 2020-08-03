@@ -2,6 +2,8 @@
 
 #include <chrono>
 #include "Face.h"
+#include "CubeViewer.h"
+#include <string>
 
 typedef unsigned long long uint64;
 
@@ -36,13 +38,18 @@ public:
 #pragma region Stats and Info
 
 	std::chrono::high_resolution_clock::time_point ProcessStartTime;
-
+	uint64 SavedMoves;
 	uint64 MoveCount;	//Total number of moves made ( rotations of 2 or 3 are counted as 1 )
 	double Hours;		//Total processing hours
 
 	inline double CurrentProcessDuration();
 
 	uint64 PieceCount();	//Number of physical pieces in a cube
+
+	int FrameNumber;	//Number to use when exporting a frame
+	int MoveCounter;	//Number of moves since the last frame export
+	int MovesPerFrame;	//Number of moves per exported frame
+
 
 #pragma endregion
 
@@ -55,6 +62,8 @@ public:
 	void Initalize(uint rsize);
 
 	void Cleanup();
+
+	inline void ExportFrame();
 
 	inline void Move(byte f, int d, int q);
 
@@ -74,7 +83,7 @@ public:
 
 	void PushCenterPieces(byte src, byte dst, byte color);
 
-	void OptomizeTopCenter();
+	void OptomizedMovement(uint* mstack, int stkptr, uint r, byte src, byte dst, int sq, int dq);
 
 	int FindCommutatorMap(byte src, byte dst);
 
@@ -137,11 +146,30 @@ public:
 	~Cube();
 };
 
+inline void Cube::ExportFrame()
+{
+	std::string name = std::to_string(FrameNumber);
+	for (byte i = 0; i < 6; i++)
+	{
+		std::string filename = "face" + std::to_string(i) + "//F" + std::to_string(i) + "_" + std::string(6 - name.length(), '0') + name + ".png";
+		std::cout << filename << std::endl;
+		CubeViewer::ExportFaceDiagram(faces[i], filename, 1000, false);
+	}
+	FrameNumber++;
+}
+
 //Rotates a Face at Depth d by q steps
 inline void Cube::Move(const byte face, const  int depth, const int q)
 {
 	//Keep track of move counts
 	MoveCount++;
+	MoveCounter++;
+	
+	if (MovesPerFrame > 0 && MoveCounter >= MovesPerFrame)
+	{
+		MoveCounter = 0;
+		ExportFrame();
+	}
 
 	switch (face)
 	{

@@ -200,7 +200,7 @@ void Cube::Solve()
 		else
 		{
 			SolveEdgesOdd();
-			SolveEdgesOdd();
+			if (!this->IsCubeSolved()) SolveEdgesOdd();
 		}
 	}
 
@@ -229,6 +229,8 @@ void Cube::SolveCenters()
 		PushCenterPieces(F, R, R);
 		Stage++;
 	}
+
+	//Stage = 19; return;
 
 	//Push R color pieces from U to R
 	if (Stage == 1)
@@ -334,11 +336,11 @@ void Cube::SolveCenters()
 		Stage++;
 	}
 
-	//Optomize Top Center
+	//remove this stage?
 	if (Stage == 14)
 	{
-		SaveCubeState();
-		OptomizeTopCenter();
+		//SaveCubeState();
+		//OptomizeTopCenter();
 		Stage++;
 	}
 
@@ -393,6 +395,109 @@ bool Cube::IsOpposite(byte src, byte dst)
 	return false;
 }
 
+////Push center pieces of any color from one face to another using commutators 
+//void Cube::PushCenterPieces(byte src, byte dst, byte color)
+//{
+//	printf("%i %i\n", src, dst);
+//
+//	//Lookup table to find commuator parameters
+//	int map = FindCommutatorMap(src, dst);
+//
+//	byte srcl = cmap[map][2];			//The face thats 'left' of the src face (in the direction of the destination)
+//	int sq = -(int)cmap[map][4];		//Quadrant to use on the source face 
+//	int dq = -(int)cmap[map][5];		//The destination is rotated relative to the source
+//	int d = 1;
+//
+//	if (IsOpposite(src, dst)) d = 2;
+//
+//	uint* mstack = new uint[R1];		//Temporary array to keep track of columns that are being moved
+//
+//	uint stkptr = 0;
+//	uint pieces = 0;
+//	uint start = 1;
+//
+//	//If starting from a save state then set the start point
+//	if (Itteration > 0) start = Itteration;
+//
+//	for (int quadrant = QState; quadrant < 2; ++quadrant)
+//	{
+//		this->QState = quadrant;
+//
+//		for (uint r = start; r < R1; ++r)
+//		{
+//			this->Itteration = r;
+//
+//			if (SaveEnabled)
+//			{
+//				//Save cube state every 1.0 hours
+//				if (CurrentProcessDuration() >= 1.0)
+//				{
+//					SaveCubeState();
+//				}
+//			}
+//
+//			while (true)
+//			{
+//				pieces = 0;
+//				stkptr = 0;
+//				for (uint c = 1; c < R1; ++c)
+//				{
+//					//Avoid diagonal piece collisions
+//					c += (c == r);
+//
+//					if (faces[src].GetRCQ(r, c, sq) == color)
+//					{
+//						pieces++;
+//						if (faces[dst].GetRCQ(r, c, dq) != color)
+//						{
+//							mstack[stkptr++] = c;
+//						}
+//					}
+//				}
+//
+//				//The row is clear - move on
+//				if (pieces == 0) break;
+//
+//				//The row is not clear but has no valid moves (rotate the destination face and continue)
+//				if (stkptr <= 0)
+//				{
+//					Move(dst, 0, 1);
+//					continue;
+//				}
+//
+//				OptomizedMovement(mstack, stkptr,r, src, dst,sq, dq);
+//
+//				//Move the pieces
+//				//for (uint c = 0; c < stkptr; ++c) Move(srcl, mstack[c], -d);
+//
+//				//Move(dst, 0, 1);
+//
+//				//Move(srcl, r, -d);
+//
+//				//Move(dst, 0, -1);
+//
+//				//for (uint c = 0; c < stkptr; ++c) Move(srcl, mstack[c], d);
+//
+//				//Move(dst, 0, 1);
+//
+//				//Move(srcl, r, d);
+//
+//				//Move(dst, 0, -1); //not needed
+//			}
+//		}
+//
+//		//reset the start point
+//		start = 1;
+//
+//		//Rotate the src face to prepare for the next quadrant
+//		Move(src, 0, 1);
+//	}
+//
+//	QState = 0;
+//	Itteration = 0;
+//	delete[] mstack;
+//}
+
 //Push center pieces of any color from one face to another using commutators 
 void Cube::PushCenterPieces(byte src, byte dst, byte color)
 {
@@ -406,16 +511,16 @@ void Cube::PushCenterPieces(byte src, byte dst, byte color)
 
 	if (IsOpposite(src, dst)) d = 2;
 
-	uint* mstack = new uint[R1];		//Temporary array to keep track of columns that are being moved
+	uint* mstack = new uint[Mid];		//Temporary array to keep track of columns that are being moved 
 
 	uint stkptr = 0;
 	uint pieces = 0;
-	uint start = 1;
+	uint start = Mid;
 
 	//If starting from a save state then set the start point
 	if (Itteration > 0) start = Itteration;
 
-	for (int quadrant = QState; quadrant < 2; ++quadrant)
+	for (int quadrant = QState; quadrant < 4; ++quadrant)
 	{
 		this->QState = quadrant;
 
@@ -436,11 +541,8 @@ void Cube::PushCenterPieces(byte src, byte dst, byte color)
 			{
 				pieces = 0;
 				stkptr = 0;
-				for (uint c = 1; c < R1; ++c)
+				for (uint c = 1; c < Mid; ++c)
 				{
-					//Avoid diagonal piece collisions
-					if (c == r) continue;
-
 					if (faces[src].GetRCQ(r, c, sq) == color)
 					{
 						pieces++;
@@ -461,25 +563,27 @@ void Cube::PushCenterPieces(byte src, byte dst, byte color)
 					continue;
 				}
 
+				OptomizedMovement(mstack, stkptr, r, src, dst, sq, dq);
+
 				//Move the pieces
-				for (uint c = 0; c < stkptr; ++c) Move(srcl, mstack[c], -d);
+				//for (uint c = 0; c < stkptr; ++c) Move(srcl, mstack[c], -d);
 
-				Move(dst, 0, 1);
+				//Move(dst, 0, 1);
 
-				Move(srcl, r, -d);
+				//Move(srcl, r, -d);
 
-				Move(dst, 0, -1);
+				//Move(dst, 0, -1);
 
-				for (uint c = 0; c < stkptr; ++c) Move(srcl, mstack[c], d);
+				//for (uint c = 0; c < stkptr; ++c) Move(srcl, mstack[c], d);
 
-				Move(dst, 0, 1);
+				//Move(dst, 0, 1);
 
-				Move(srcl, r, d);
+				//Move(srcl, r, d);
 			}
 		}
 
 		//reset the start point
-		start = 1;
+		start = Mid;
 
 		//Rotate the src face to prepare for the next quadrant
 		Move(src, 0, 1);
@@ -490,39 +594,22 @@ void Cube::PushCenterPieces(byte src, byte dst, byte color)
 	delete[] mstack;
 }
 
-//Save some time by swapping rows between Up and Back faces that have more Up or Back pieces 
-void Cube::OptomizeTopCenter()
+//Speed up the processing by eliminating uneeded memory swapping
+void Cube::OptomizedMovement(uint* mstack, int stkptr, uint r, byte src, byte dst, int sq, int dq)
 {
-	uint r, c;
-
-	int Br, Ur;
-	for (int z = 0; z < 8; z++)
+	byte a, b;
+	
+	for (uint c = 0; c < stkptr; ++c)
 	{
-		for (int q = 0; q < 8; q++)
-		{
-			for (c = 1; c < Mid; ++c)
-			{
-				Br = 0;
-				Ur = 0;
-				//count B pieces in B and U columns
-				for (r = 1; r < R1; ++r)
-				{
-					if (faces[B].GetRC(r, R1 - c) == B) Br++;
-					if (faces[U].GetRC(r, R1 - c) == B) Ur++;
-				}
-				if (Ur - Br > 0)
-				{
-					Move(L, c, 1);
-					Move(U, 0, 2);
-					Move(L, c, -1);
-				}
-			}
-			Move(U, 0, 1);
-		}
-		Move(B, 0, 1);
+		a = faces[dst].GetRCQ(r, mstack[c], dq);
+		faces[dst].SetRCQ(r, mstack[c], dq, dst);
+		b = faces[src].GetRCQ(r, mstack[c], sq - 1);
+		faces[src].SetRCQ(r, mstack[c], sq - 1, a);
+		faces[src].SetRCQ(r, mstack[c], sq, b);
 	}
 
-
+	SavedMoves += (((uint64)stkptr) << 1) + 5;
+	MoveCount += (((uint64)stkptr) << 1) + 5;
 }
 
 //Find the correct commuator map
@@ -1625,6 +1712,9 @@ void Cube::PrintStats()
 	printf("Total Tiles : %llu\n", ((uint64)RowSize * (uint64)RowSize * 6));
 	printf("Total Pieces : %llu\n", PieceCount());
 	printf("Total Moves : %llu\n", MoveCount);
+	printf("Saved Moves : %llu\n", SavedMoves);
+
+	printf("Speed up factor : %f\n", ((double)MoveCount) / ((double)(MoveCount - SavedMoves)));
 	printf("Moves per piece : %f\n", (double)MoveCount / (double)PieceCount());
 
 	if (Hours < 1.0)
@@ -1667,15 +1757,12 @@ void Cube::PrintStats()
 //Returns true if all faces are in the solved state
 bool Cube::IsCubeSolved()
 {
-	bool result = true;
-
 	for (int i = 0; i < 6; ++i)
 	{
-		result &= faces[i].IsFaceSolved();
-		if (!result) return false;
+		if (!faces[i].IsFaceSolved()) return false;
 	}
 
-	return result;
+	return true;
 }
 
 #pragma endregion
@@ -1683,6 +1770,9 @@ bool Cube::IsCubeSolved()
 void Cube::Reset()
 {
 	MoveCount = 0;
+	MoveCounter = 0;
+	SavedMoves = 0;
+	FrameNumber = 0;
 	Hours = 0.0;
 	memset(EdgeState, 0, 12);
 	Stage = 0;			//stage of the solve (used for recovering from a restart)

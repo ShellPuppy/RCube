@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include "Cube.h"
+#include "Face.h"
 #include "TinyPngOut.hpp" //https://www.nayuki.io/page/tiny-png-output
 
 
@@ -14,7 +14,9 @@ class CubeViewer
 
 public:
 
-	void ExportFaceDiagram(Face& face,std::string FileName, int ImageWidth, bool IncludeGridlines);
+	static void ExportFaceDiagram(Face& face,std::string FileName, int ImageWidth, bool IncludeGridlines);
+
+
 
 };
 

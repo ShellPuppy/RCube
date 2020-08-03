@@ -31,6 +31,8 @@ public:
 
 	inline void SetRC(const uint r, const uint c, const byte v);
 
+	void SetRCQ(const uint r, const uint c, int q, const byte v);
+
 	const int GetDelta(const uint d) const;
 
 	const int GetPos(const uint r, const uint c) const;
@@ -105,6 +107,28 @@ inline const byte Face::GetRCQ(const uint r, const uint c, int q) const
 inline void Face::SetRC(const uint r, const uint c, const byte v)
 {
 	switch (orientation)
+	{
+	case 0:
+		data[(r << BS) + c] = v;
+		return;
+	case 1:
+		data[(c << BS) + (R1 - r)] = v;
+		return;
+	case 2:
+		data[((R1 - r) << BS) + (R1 - c)] = v;
+		return;
+	case 3:
+		data[((R1 - c) << BS) + r] = v;
+		return;
+	}
+}
+
+//Sets the value of this face at coordinates r = row, c = column
+inline void Face::SetRCQ(const uint r, const uint c, int q, const byte v)
+{
+	q = (orientation - q) & 3;
+
+	switch (q)
 	{
 	case 0:
 		data[(r << BS) + c] = v;

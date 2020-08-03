@@ -1,5 +1,7 @@
 #include "Cube.h"
 #include "CubeViewer.h"
+#include <iostream>
+#include <fstream>
 
 void StartNewCube()
 {
@@ -35,14 +37,17 @@ void StartNewCube()
 	}
 
 	//Print stats before solving
-	cube.PrintStats();
+	//cube.PrintStats();
+
+	cube.MovesPerFrame = 0;
 
 	//Solve it!
-	printf("Solving\n");
+	printf("Solving 2.0\n");
 	cube.Solve();
 
 	//Print stats after solving
 	cube.PrintStats();
+
 
 	printf("Done\n");
 	tmp = scanf("%i", &tmp);
@@ -73,24 +78,57 @@ void ExampleImageOutput()
 	cube.Scramble(1234);
 
 	//Create instance of a cube viewer
-	CubeViewer cview;
 
 	//Export images of each face
 
 	//Specify cube face, filename, image size, include gridlines
-	cview.ExportFaceDiagram(cube.faces[0], "Front Face.png", 1024, true);
-	cview.ExportFaceDiagram(cube.faces[1], "Right Face.png", 1024, true);
-	cview.ExportFaceDiagram(cube.faces[2], "Back Face.png", 1024, true);
-	cview.ExportFaceDiagram(cube.faces[3], "Left Face.png", 1024, true);
-	cview.ExportFaceDiagram(cube.faces[4], "Top Face.png", 1024, true);
-	cview.ExportFaceDiagram(cube.faces[5], "Bottom Face.png", 1024, true);
+	CubeViewer::ExportFaceDiagram(cube.faces[0], "Front Face.png", 1024, true);
+	CubeViewer::ExportFaceDiagram(cube.faces[1], "Right Face.png", 1024, true);
+	CubeViewer::ExportFaceDiagram(cube.faces[2], "Back Face.png", 1024, true);
+	CubeViewer::ExportFaceDiagram(cube.faces[3], "Left Face.png", 1024, true);
+	CubeViewer::ExportFaceDiagram(cube.faces[4], "Top Face.png", 1024, true);
+	CubeViewer::ExportFaceDiagram(cube.faces[5], "Bottom Face.png", 1024, true);
+}
+
+
+void Omega()
+{
+	Cube* cube = nullptr;
+
+	std::ofstream out("kvalue1.csv", std::ios::app);
+
+	//for (int i = 0; i < 100; i++)
+	{
+		for (int n = 4; n <= 2048; n+=2)
+		{
+			//create cube(n)
+			cube = new Cube(n);
+
+			cube->Scramble(123);
+
+			cube->Solve();
+
+			printf("%i : %.7f\n", n, cube->Hours * 3600.0);
+
+			out << n << "," << cube->MoveCount << "," << cube->SavedMoves <<  "," << (cube->Hours * 3600.0) << std::endl;
+
+			delete cube;
+
+			out.flush();
+		}
+	}
+
+	out.close();
+
+
 }
 
 int main()
 {
+	Omega();
 
 	//Start a new cube and solve it
-	StartNewCube();
+	//StartNewCube();
 	
 	//Uncomment to load an existing cube from a save state
 	//LoadExistingCube();
