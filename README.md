@@ -3,9 +3,10 @@
 Rubik's Cube solver for very large cubes.  
 
 Solves any cube of any size from 1 to 65536. The code can be easily modified to handle even larger cubes. However the primary limitation is the amount of memory on a system and the length of time it takes to solve.
-Solve time grows N^3 which means it takes 8 times longer to solve a cube that is 2x larger in each dimension. The number of pieces grows N^2 and the amount of work to rotate a slice is N, thus N^3;
+Solve time grows ~N^2 which means it takes 4-5 times longer to solve a cube that is 2x larger in each dimension. 
 
-A 1024 layered cube can be solved in about 40 seconds.
+A 1024 layered cube can be solved in about 1.5 seconds.
+A 16384 layered cube can be solved in about 20 minutes.
 
 [Youtube: Solving 32768 Layers](https://www.youtube.com/watch?v=xOJtLb_rPVg)
 
