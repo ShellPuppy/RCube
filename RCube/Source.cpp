@@ -26,10 +26,11 @@ void StartNewCube()
 	Cube cube(n);
 
 	//Scramble the cube using the seed value
+	printf("Scrambling Cube...\n");
 	cube.Scramble(seed);
 
 	//No need to save progress for smaller cubes
-	if (n >= 8192)
+	if (n >= 32768)
 	{
 		printf("Saving enabled\n");
 		cube.SaveEnabled = true;
@@ -37,12 +38,14 @@ void StartNewCube()
 	}
 
 	//Print stats before solving
-	//cube.PrintStats();
+	cube.PrintStats();
 
 	cube.MovesPerFrame = 0;
+	
+	cube.SaveEnabled = false;
 
 	//Solve it!
-	printf("Solving 2.0\n");
+	printf("Solving 3.0\n");
 	cube.Solve();
 
 	//Print stats after solving
@@ -93,24 +96,25 @@ void ExampleImageOutput()
 
 void Omega()
 {
+
 	Cube* cube = nullptr;
 
 	std::ofstream out("kvalue1.csv", std::ios::app);
 
-	//for (int i = 0; i < 100; i++)
+	for (int i = 0; i < 100; i++)
 	{
-		for (int n = 4; n <= 2048; n+=2)
+		for (int n = 4; n <= 2048; n*=2)
 		{
 			//create cube(n)
 			cube = new Cube(n);
 
-			cube->Scramble(123);
+			cube->Scramble(i);
 
 			cube->Solve();
 
 			printf("%i : %.7f\n", n, cube->Hours * 3600.0);
 
-			out << n << "," << cube->MoveCount << "," << cube->SavedMoves <<  "," << (cube->Hours * 3600.0) << std::endl;
+			out << n << "," << cube->MoveCount << "," << (cube->Hours * 3600.0) << std::endl;
 
 			delete cube;
 
@@ -125,10 +129,10 @@ void Omega()
 
 int main()
 {
-	Omega();
+	//Omega();
 
 	//Start a new cube and solve it
-	//StartNewCube();
+	StartNewCube();
 	
 	//Uncomment to load an existing cube from a save state
 	//LoadExistingCube();

@@ -22,7 +22,7 @@ Face::Face()
 
 void Face::Initialize(byte index, uint rsize, uint msize)
 {
-	if(rsize > 1024) printf("Initializing Face %i\n", (int)index);
+	//if(rsize > 1024) printf("Initializing Face %i\n", (int)index);
 
 	//Index of this face
 	id = index;

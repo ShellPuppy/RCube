@@ -38,7 +38,7 @@ public:
 #pragma region Stats and Info
 
 	std::chrono::high_resolution_clock::time_point ProcessStartTime;
-	uint64 SavedMoves;
+
 	uint64 MoveCount;	//Total number of moves made ( rotations of 2 or 3 are counted as 1 )
 	double Hours;		//Total processing hours
 
@@ -163,12 +163,13 @@ inline void Cube::Move(const byte face, const  int depth, const int q)
 {
 	//Keep track of move counts
 	MoveCount++;
+	
 	MoveCounter++;
 	
 	if (MovesPerFrame > 0 && MoveCounter >= MovesPerFrame)
 	{
 		MoveCounter = 0;
-		ExportFrame();
+		//ExportFrame();
 	}
 
 	switch (face)
@@ -202,7 +203,7 @@ inline void Cube::RotateX(const uint index, const int step)
 
 	byte b[4];
 	byte* f0, * f4, * f2, * f5;
-	int p0, p4, p2, p5;
+	uint p0, p4, p2, p5;
 	int d0, d4, d2, d5;
 	int i0, i1, i2, i3;
 
@@ -258,7 +259,7 @@ inline void Cube::RotateY(const uint index, const int step)
 
 	byte b[4];
 	byte* f0, * f1, * f2, * f3;
-	int p0, p1, p2, p3;
+	uint p0, p1, p2, p3;
 	int d0, d1, d2, d3;
 	int i0, i1, i2, i3;
 
@@ -314,7 +315,7 @@ inline void Cube::RotateZ(const uint index, const int step)
 
 	byte b[4];
 	byte* f1, * f5, * f3, * f4;
-	int p1, p5, p3, p4;
+	uint p1, p5, p3, p4;
 	int d1, d5, d3, d4;
 	int i0, i1, i2, i3;
 

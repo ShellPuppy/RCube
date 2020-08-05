@@ -177,21 +177,21 @@ void Cube::Solve()
 	//Odd size cubes need to have their center pieces aligned first
 	AlignTrueCenters();
 
-	//Stage 0 through 15 (solve centers)
-	if (Stage <= 15)
+	//Stage 0 through 14 (solve centers)
+	if (Stage <= 14)
 	{
 		SolveCenters();
 	}
 
-	//Stage 16 (solve corners)
-	if (Stage == 16)
+	//Stage 15 (solve corners)
+	if (Stage == 15)
 	{
 		SaveCubeState();
 		SolveCorners();
 	}
 
-	//State 17 (solve edges)
-	if (Stage == 17)
+	//State 16 (solve edges)
+	if (Stage == 16)
 	{
 		if (IsEven)
 		{
@@ -219,7 +219,7 @@ void Cube::SolveCenters()
 	//No need to solve centers for cubes less than size 4
 	if (RowSize < 4)
 	{
-		Stage = 16;
+		Stage = 15;
 		return;
 	}
 
@@ -336,16 +336,8 @@ void Cube::SolveCenters()
 		Stage++;
 	}
 
-	//remove this stage?
-	if (Stage == 14)
-	{
-		//SaveCubeState();
-		//OptomizeTopCenter();
-		Stage++;
-	}
-
 	//Push U color pieces from B to U
-	if (Stage == 15)
+	if (Stage == 14)
 	{
 		SaveCubeState();
 		PushCenterPieces(U, B, B);
@@ -395,108 +387,6 @@ bool Cube::IsOpposite(byte src, byte dst)
 	return false;
 }
 
-////Push center pieces of any color from one face to another using commutators 
-//void Cube::PushCenterPieces(byte src, byte dst, byte color)
-//{
-//	printf("%i %i\n", src, dst);
-//
-//	//Lookup table to find commuator parameters
-//	int map = FindCommutatorMap(src, dst);
-//
-//	byte srcl = cmap[map][2];			//The face thats 'left' of the src face (in the direction of the destination)
-//	int sq = -(int)cmap[map][4];		//Quadrant to use on the source face 
-//	int dq = -(int)cmap[map][5];		//The destination is rotated relative to the source
-//	int d = 1;
-//
-//	if (IsOpposite(src, dst)) d = 2;
-//
-//	uint* mstack = new uint[R1];		//Temporary array to keep track of columns that are being moved
-//
-//	uint stkptr = 0;
-//	uint pieces = 0;
-//	uint start = 1;
-//
-//	//If starting from a save state then set the start point
-//	if (Itteration > 0) start = Itteration;
-//
-//	for (int quadrant = QState; quadrant < 2; ++quadrant)
-//	{
-//		this->QState = quadrant;
-//
-//		for (uint r = start; r < R1; ++r)
-//		{
-//			this->Itteration = r;
-//
-//			if (SaveEnabled)
-//			{
-//				//Save cube state every 1.0 hours
-//				if (CurrentProcessDuration() >= 1.0)
-//				{
-//					SaveCubeState();
-//				}
-//			}
-//
-//			while (true)
-//			{
-//				pieces = 0;
-//				stkptr = 0;
-//				for (uint c = 1; c < R1; ++c)
-//				{
-//					//Avoid diagonal piece collisions
-//					c += (c == r);
-//
-//					if (faces[src].GetRCQ(r, c, sq) == color)
-//					{
-//						pieces++;
-//						if (faces[dst].GetRCQ(r, c, dq) != color)
-//						{
-//							mstack[stkptr++] = c;
-//						}
-//					}
-//				}
-//
-//				//The row is clear - move on
-//				if (pieces == 0) break;
-//
-//				//The row is not clear but has no valid moves (rotate the destination face and continue)
-//				if (stkptr <= 0)
-//				{
-//					Move(dst, 0, 1);
-//					continue;
-//				}
-//
-//				OptomizedMovement(mstack, stkptr,r, src, dst,sq, dq);
-//
-//				//Move the pieces
-//				//for (uint c = 0; c < stkptr; ++c) Move(srcl, mstack[c], -d);
-//
-//				//Move(dst, 0, 1);
-//
-//				//Move(srcl, r, -d);
-//
-//				//Move(dst, 0, -1);
-//
-//				//for (uint c = 0; c < stkptr; ++c) Move(srcl, mstack[c], d);
-//
-//				//Move(dst, 0, 1);
-//
-//				//Move(srcl, r, d);
-//
-//				//Move(dst, 0, -1); //not needed
-//			}
-//		}
-//
-//		//reset the start point
-//		start = 1;
-//
-//		//Rotate the src face to prepare for the next quadrant
-//		Move(src, 0, 1);
-//	}
-//
-//	QState = 0;
-//	Itteration = 0;
-//	delete[] mstack;
-//}
 
 //Push center pieces of any color from one face to another using commutators 
 void Cube::PushCenterPieces(byte src, byte dst, byte color)
@@ -608,7 +498,6 @@ void Cube::OptomizedMovement(uint* mstack, int stkptr, uint r, byte src, byte ds
 		faces[src].SetRCQ(r, mstack[c], sq, b);
 	}
 
-	SavedMoves += (((uint64)stkptr) << 1) + 5;
 	MoveCount += (((uint64)stkptr) << 1) + 5;
 }
 
@@ -1712,9 +1601,6 @@ void Cube::PrintStats()
 	printf("Total Tiles : %llu\n", ((uint64)RowSize * (uint64)RowSize * 6));
 	printf("Total Pieces : %llu\n", PieceCount());
 	printf("Total Moves : %llu\n", MoveCount);
-	printf("Saved Moves : %llu\n", SavedMoves);
-
-	printf("Speed up factor : %f\n", ((double)MoveCount) / ((double)(MoveCount - SavedMoves)));
 	printf("Moves per piece : %f\n", (double)MoveCount / (double)PieceCount());
 
 	if (Hours < 1.0)
@@ -1771,7 +1657,6 @@ void Cube::Reset()
 {
 	MoveCount = 0;
 	MoveCounter = 0;
-	SavedMoves = 0;
 	FrameNumber = 0;
 	Hours = 0.0;
 	memset(EdgeState, 0, 12);
