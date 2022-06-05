@@ -74,3 +74,12 @@ This algorithm is optimized for very large cubes. However it is terrible for sma
 
 ![](RCube/Images/MovesPerPiece.PNG)
 
+## Build and Run
+- Install CMake or an IDE with CMake support
+- Clone this repository and open directory in a terminal
+```sh
+cmake -B build -S .
+cd build
+cmake --build .
+RCube/RCube
+```
